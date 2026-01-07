@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- Circle Icon Container -->
+    <FrameLayout
+        android:id="@+id/iconContainer"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true">
+
+        <!-- Circle Background -->
+        <View
+            android:id="@+id/iconBackground"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_dark_purple" />
+
+        <!-- Icon ImageView - Centered properly -->
+        <ImageView
+            android:id="@+id/iconImage"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_building"
+            android:scaleType="centerInside"
+            android:contentDescription="Transaction icon" />
+
+    </FrameLayout>
+
+    <!-- Transaction Details Container -->
+    <LinearLayout
+        android:id="@+id/detailsContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/iconContainer"
+        android:layout_marginStart="16dp"
+        android:layout_centerVertical="true"
+        android:orientation="vertical">
+
+        <!-- Transaction Title -->
+        <TextView
+            android:id="@+id/transactionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaction Name"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#000000" />
+
+        <!-- Transaction Amount -->
+        <TextView
+            android:id="@+id/transactionAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.00 Dhs"
+            android:textSize="13sp"
+            android:textColor="#999999"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+
+    <!-- Chevron Arrow -->
+    <TextView
+        android:id="@+id/chevron"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="›"
+        android:textSize="24sp"
+        android:textColor="#CCCCCC"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true" />
+
+</RelativeLayout>

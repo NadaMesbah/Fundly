@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F7">
+
+    <!-- Top Bar -->
+    <RelativeLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:padding="16dp"
+        android:background="#3869EA">
+
+        <!-- Back Button -->
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_back"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Go back" />
+
+        <!-- Details Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Details"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+    </RelativeLayout>
+
+    <!-- Content Container (at top/middle, not centered) -->
+    <LinearLayout
+        android:id="@+id/contentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topBar"
+        android:layout_marginTop="40dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Icon Circle -->
+        <FrameLayout
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="20dp">
+
+            <View
+                android:id="@+id/iconBackground"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:background="@drawable/circle_blue_purple" />
+
+            <ImageView
+                android:id="@+id/iconImage"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_building"
+                android:contentDescription="Transaction icon" />
+
+        </FrameLayout>
+
+        <!-- Transaction Name -->
+        <TextView
+            android:id="@+id/transactionName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rent &amp; Utilities"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Type Label and Value -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Type:"
+                android:textSize="16sp"
+                android:textColor="#666666" />
+
+            <TextView
+                android:id="@+id/transactionType"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Expense"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="end" />
+
+        </LinearLayout>
+
+        <!-- Amount Label and Value -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Amount:"
+                android:textSize="16sp"
+                android:textColor="#666666" />
+
+            <TextView
+                android:id="@+id/transactionAmount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="$2,400.00"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="end" />
+
+        </LinearLayout>
+
+        <!-- Date Label and Value -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Date:"
+                android:textSize="16sp"
+                android:textColor="#666666" />
+
+            <TextView
+                android:id="@+id/transactionDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="11 May 2024"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="end" />
+
+        </LinearLayout>
+
+        <!-- Note Label and Value -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Note:"
+                android:textSize="16sp"
+                android:textColor="#666666"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/transactionNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:lineSpacingExtra="4dp"
+                android:padding="12dp"
+                android:background="@drawable/rounded_background"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Bottom Buttons Container -->
+    <LinearLayout
+        android:id="@+id/buttonsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:layout_marginBottom="40dp">
+
+        <!-- Edit Button -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/editButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Edit"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="#4A90E2"
+                android:gravity="center"
+                android:padding="16dp" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Delete Button -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/deleteButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="#E42323"
+                android:gravity="center"
+                android:padding="16dp" />
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</RelativeLayout>

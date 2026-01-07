@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="card_background">#FAFAFA</color>
+    <color name="card_selected">#E3F2FD</color>
+    <color name="transparent">#00000000</color>
+
+    <color name="category_1">#4CAF50</color>
+    <color name="category_2">#2196F3</color>
+    <color name="category_3">#FF9800</color>
+    <color name="category_4">#9C27B0</color>
+    <color name="category_5">#E91E63</color>
+    <color name="category_6">#00BCD4</color>
+    <color name="category_7">#607D8B</color>
+
+    <color name="primary_blue">#4A90E2</color>
+    <color name="primary_blue_light">#E3F2FD</color>
+    <color name="primary_blue_dark">#2E5C8A</color>
+    <color name="primary_gradient_start">#667EEA</color>
+    <color name="primary_gradient_end">#4A90E2</color>
+
+    <!-- Glassy Accent Colors -->
+    <color name="accent_purple">#9D7CED</color>
+    <color name="accent_pink">#F093B0</color>
+    <color name="accent_green">#4ECDC4</color>
+    <color name="accent_orange">#FF9472</color>
+    <color name="accent_red">#FF6B9D</color>
+    <color name="accent_teal">#44CFC4</color>
+    <color name="accent_mint">#7FDBCA</color>
+    <color name="accent_yellow">#FFC107</color>
+
+    <!-- Glass Effect Colors (with transparency) -->
+    <color name="glass_white">#F0FFFFFF</color>
+    <color name="glass_surface">#E6FFFFFF</color>
+    <color name="glass_overlay">#33FFFFFF</color>
+    <color name="glass_border">#1AFFFFFF</color>
+
+    <!-- Background Gradients -->
+    <color name="background_gradient_start">#F8F9FF</color>
+    <color name="background_gradient_end">#E8EEF9</color>
+    <color name="background_white">#FAFBFF</color>
+    <color name="background_light">#F5F5F5</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1A2332</color>
+    <color name="text_secondary">#6B7A8F</color>
+    <color name="text_hint">#A0AEC0</color>
+    <color name="text_light">#FFFFFF</color>
+
+    <!-- Surface Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="surface_elevated">#F7F9FC</color>
+
+    <!-- Shadow & Elevation -->
+    <color name="shadow_light">#0D000000</color>
+    <color name="shadow_medium">#1A000000</color>
+
+    <!-- Category Colors (Vibrant & Modern) -->
+    <color name="cat_food">#FF6B9D</color>
+    <color name="cat_transport">#4A90E2</color>
+    <color name="cat_shopping">#FF9472</color>
+    <color name="cat_health">#9D7CED</color>
+    <color name="cat_entertainment">#F093B0</color>
+    <color name="cat_education">#4ECDC4</color>
+    <color name="cat_home">#FFA07A</color>
+    <color name="cat_phone">#7FDBCA</color>
+    <color name="cat_salary">#44CFC4</color>
+    <color name="cat_freelance">#667EEA</color>
+    <color name="cat_investment">#FFBE76</color>
+    <color name="cat_gift">#DA70D6</color>
+</resources>

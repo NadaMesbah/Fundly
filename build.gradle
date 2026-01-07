@@ -1,0 +1,19 @@
+// Top-level build file
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.3.0'
+        classpath 'io.realm:realm-gradle-plugin:10.15.0'  // Realm Java plugin
+    }
+}
+
+plugins {
+    id 'com.android.application' version '8.3.0' apply false
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
+}

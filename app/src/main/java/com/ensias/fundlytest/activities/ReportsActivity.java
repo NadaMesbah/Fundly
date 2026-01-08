@@ -6,7 +6,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
-import androidx.appcompat.app.AppCompatActivity;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.database.DataManager;
 import com.github.mikephil.charting.charts.PieChart;
@@ -17,7 +16,7 @@ import com.google.android.material.tabs.TabLayout;
 import java.text.*;
 import java.util.*;
 
-public class ReportsActivity extends AppCompatActivity {
+public class ReportsActivity extends BaseActivity {
 
     private DataManager dataManager;
     private PieChart pieChart;
@@ -47,13 +46,26 @@ public class ReportsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_reports);
+
+        // Inflate the reports layout into the fragment container
+        FrameLayout container = findViewById(R.id.fragment_container);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        inflater.inflate(R.layout.activity_reports, container, true);
 
         dataManager = new DataManager();
 
         setupViews();
         setupPieChart();
         setupPeriodTabs();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh data when returning to this activity
+        if (startDate != null && endDate != null) {
+            loadChartData();
+        }
     }
 
     @Override

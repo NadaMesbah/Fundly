@@ -2,17 +2,21 @@ package com.ensias.fundlytest.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.view.LayoutInflater;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import com.ensias.fundlytest.R;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        FrameLayout container = findViewById(R.id.fragment_container);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        inflater.inflate(R.layout.activity_main, container, true);
 
         setupNavigation();
     }

@@ -88,6 +88,32 @@ public class DataManager {
         });
     }
 
+    // Get transaction by ID
+    public Transaction getTransactionById(String transactionId) {
+        return realm.where(Transaction.class)
+                .equalTo("id", transactionId)
+                .findFirst();
+    }
+
+    // Update a transaction
+    public void updateTransaction(String transactionId, double amount, String categoryId, String type,
+                                  String note, Date date, int color, String iconName) {
+        realm.executeTransaction(r -> {
+            Transaction transaction = r.where(Transaction.class)
+                    .equalTo("id", transactionId)
+                    .findFirst();
+            if (transaction != null) {
+                transaction.setAmount(amount);
+                transaction.setCategoryId(categoryId);
+                transaction.setType(type);
+                transaction.setNote(note);
+                transaction.setDate(date);
+                transaction.setColor(color);
+                transaction.setIconName(iconName);
+            }
+        });
+    }
+
     // Get all transactions
     public List<Transaction> getAllTransactions() {
         return realm.where(Transaction.class)

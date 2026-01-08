@@ -7,31 +7,21 @@ import java.util.Date;
 import java.util.UUID;
 
 public class Transaction extends RealmObject {
-
     @PrimaryKey
     private String id;
-
     private double amount;
-
     @Required
-    private String categoryId; // Reference to category
-
+    private String categoryId;
     @Required
     private String type; // "income" or "expense"
-
     private Date date;
     private String note;
-
-    // Denormalized fields for quick access (copied from category)
     private String iconName;
     private int color;
 
-    // Realm requires empty constructor
     public Transaction() {
-        // Don't generate UUID here - Realm handles it differently
     }
 
-    // Constructor for creating new transactions
     public Transaction(double amount, String categoryId, String type, String note) {
         this.id = UUID.randomUUID().toString();
         this.amount = amount;
@@ -41,7 +31,6 @@ public class Transaction extends RealmObject {
         this.date = new Date();
     }
 
-    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

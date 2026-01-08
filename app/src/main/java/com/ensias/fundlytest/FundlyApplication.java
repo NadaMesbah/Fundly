@@ -16,7 +16,6 @@ public class FundlyApplication extends Application {
         super.onCreate();
         instance = this;
 
-        // Initialize Realm
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder()
                 .name("fundly.realm")

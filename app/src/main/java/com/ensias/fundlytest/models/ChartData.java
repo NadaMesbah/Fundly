@@ -14,7 +14,6 @@ public class ChartData {
         this.color = color;
     }
 
-    // Getters and Setters
     public String getCategory() {
         return category;
     }

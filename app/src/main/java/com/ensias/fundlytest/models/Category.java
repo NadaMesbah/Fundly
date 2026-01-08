@@ -19,14 +19,11 @@ public class Category extends RealmObject {
     private String iconName;
     private int color;
     private boolean isCustom;
-    private int order; // For sorting
+    private int order;
 
-    // Realm requires empty constructor
     public Category() {
-        // Don't generate UUID here - Realm handles it differently
     }
 
-    // Constructor for creating new categories
     public Category(String name, String type, String iconName, int color) {
         this.id = UUID.randomUUID().toString();
         this.name = name;
@@ -45,7 +42,6 @@ public class Category extends RealmObject {
         this.order = 999;
     }
 
-    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

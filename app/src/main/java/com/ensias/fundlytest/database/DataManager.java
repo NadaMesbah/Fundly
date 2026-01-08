@@ -175,7 +175,6 @@ public class DataManager {
         return breakdown;
     }
 
-    // Close Realm instance
     public void close() {
         if (realm != null && !realm.isClosed()) {
             realm.close();

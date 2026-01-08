@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_gradient">
+
+    <!-- Glassy Top Bar -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@color/glass_white"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:background="@color/glass_white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/button_secondary"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/primary_blue" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Transactions"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <ImageButton
+                android:id="@+id/btnRefresh"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/button_secondary"
+                android:src="@drawable/ic_refresh"
+                app:tint="@color/primary_blue" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="64dp"
+        android:orientation="vertical">
+
+        <!-- Income | Expenses Tab Layout -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/tab_background"
+            app:tabIndicatorColor="@android:color/transparent"
+            app:tabSelectedTextColor="@color/white"
+            app:tabTextColor="@color/text_secondary"
+            app:tabBackground="@drawable/tab_selector"
+            app:tabIndicatorHeight="0dp"
+            android:layout_margin="20dp">
+
+            <!-- Income Tab -->
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EXPENSE" />
+
+            <!-- Expenses Tab -->
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INCOME" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <!-- Total and Week Selector -->
+        <RelativeLayout
+            android:id="@+id/headerRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/totalLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total expenses"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true" />
+
+            <TextView
+                android:id="@+id/weekSelector"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This week"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </RelativeLayout>
+
+        <!-- Transaction List -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/transactionsList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="8dp"
+            android:clipToPadding="false"
+            android:padding="18dp"/>
+
+        <!-- Add Transaction Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:layout_margin="20dp"
+            app:backgroundTint="@color/primary_blue"
+            android:text="+ Add Transaction"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:drawableStart="@drawable/ic_add"
+            android:drawableTint="@color/white"
+            android:drawablePadding="8dp" />
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

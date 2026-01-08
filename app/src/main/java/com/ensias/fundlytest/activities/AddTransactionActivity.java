@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Category;
+import com.ensias.fundlytest.models.Transaction;
 import com.google.android.material.tabs.TabLayout;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -31,6 +32,10 @@ public class AddTransactionActivity extends AppCompatActivity {
     private Date selectedDate = new Date();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
+    // Edit mode variables
+    private String transactionIdToEdit = null;
+    private boolean isEditMode = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,10 +43,22 @@ public class AddTransactionActivity extends AppCompatActivity {
 
         dataManager = new DataManager();
 
+        // Check if we're editing an existing transaction
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("transaction_id") && intent.getBooleanExtra("is_edit", false)) {
+            transactionIdToEdit = intent.getStringExtra("transaction_id");
+            isEditMode = true;
+        }
+
         setupViews();
         setupTabs();
         setupDatePicker();
         setupActions();
+
+        // If editing, load transaction data
+        if (isEditMode && transactionIdToEdit != null) {
+            loadTransactionForEditing();
+        }
     }
 
     @Override
@@ -100,6 +117,61 @@ public class AddTransactionActivity extends AppCompatActivity {
         loadCategories();
     }
 
+    private void loadTransactionForEditing() {
+        // Get transaction by ID
+        Transaction transactionToEdit = dataManager.getTransactionById(transactionIdToEdit);
+
+        if (transactionToEdit != null) {
+            // Set current type
+            currentType = transactionToEdit.getType();
+
+            // Select the correct tab
+            int tabPosition = currentType.equals("expense") ? 0 : 1;
+            TabLayout.Tab tab = tabLayout.getTabAt(tabPosition);
+            if (tab != null) {
+                tabLayout.selectTab(tab);
+            }
+
+            // Load categories and find the correct one
+            loadCategories();
+
+            // Set the selected category after a short delay to ensure spinner is populated
+            spinnerCategory.post(() -> {
+                int categoryPosition = -1;
+                for (int i = 0; i < categories.size(); i++) {
+                    if (categories.get(i).getId().equals(transactionToEdit.getCategoryId())) {
+                        categoryPosition = i;
+                        break;
+                    }
+                }
+
+                if (categoryPosition >= 0) {
+                    spinnerCategory.setSelection(categoryPosition);
+                }
+
+                // Set amount
+                etAmount.setText(String.valueOf(transactionToEdit.getAmount()));
+
+                // Set date
+                if (transactionToEdit.getDate() != null) {
+                    selectedDate = transactionToEdit.getDate();
+                    etDate.setText(dateFormat.format(selectedDate));
+                }
+
+                // Set note
+                if (transactionToEdit.getNote() != null) {
+                    noteInput.setText(transactionToEdit.getNote());
+                }
+
+                // Update button text
+                btnSave.setText("Update Transaction");
+            });
+        } else {
+            Toast.makeText(this, "Transaction not found", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
+
     private void setupDatePicker() {
         etDate.setOnClickListener(v -> showDatePicker());
         btnPickDate.setOnClickListener(v -> showDatePicker());
@@ -149,7 +221,7 @@ public class AddTransactionActivity extends AppCompatActivity {
         spinnerAdapter.addAll(names);
         spinnerAdapter.notifyDataSetChanged();
 
-        if (!categories.isEmpty()) {
+        if (!categories.isEmpty() && !isEditMode) {
             spinnerCategory.setSelection(0);
         }
     }
@@ -192,19 +264,33 @@ public class AddTransactionActivity extends AppCompatActivity {
             note = selectedCategory.getName() + " transaction";
         }
 
-        // Add transaction using DataManager
-        dataManager.addTransaction(
-                UUID.randomUUID().toString(),
-                amount,
-                selectedCategory.getId(),
-                currentType,
-                note,
-                selectedDate,
-                selectedCategory.getColor(),
-                selectedCategory.getIconName()
-        );
+        if (isEditMode && transactionIdToEdit != null) {
+            // Update existing transaction
+            dataManager.updateTransaction(
+                    transactionIdToEdit,
+                    amount,
+                    selectedCategory.getId(),
+                    currentType,
+                    note,
+                    selectedDate,
+                    selectedCategory.getColor(),
+                    selectedCategory.getIconName()
+            );
+        } else {
+            // Add new transaction
+            dataManager.addTransaction(
+                    UUID.randomUUID().toString(),
+                    amount,
+                    selectedCategory.getId(),
+                    currentType,
+                    note,
+                    selectedDate,
+                    selectedCategory.getColor(),
+                    selectedCategory.getIconName()
+            );
+        }
 
-        Toast.makeText(this, "Saved ✅", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, isEditMode ? "Updated ✅" : "Saved ✅", Toast.LENGTH_SHORT).show();
         finish();
     }
 }

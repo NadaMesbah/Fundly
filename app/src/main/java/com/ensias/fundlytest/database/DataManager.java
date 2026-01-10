@@ -2,6 +2,8 @@ package com.ensias.fundlytest.database;
 
 import com.ensias.fundlytest.models.Category;
 import com.ensias.fundlytest.models.Transaction;
+import com.ensias.fundlytest.models.User;
+
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
@@ -13,6 +15,76 @@ public class DataManager {
 
     public DataManager() {
         realm = Realm.getDefaultInstance();
+    }
+
+    // Register un nouvel utilisateur
+    public boolean registerUser(String id, String fullName, String email, String password) {
+        // Vérifier si l'email existe déjà
+        User existingUser = realm.where(User.class)
+                .equalTo("email", email)
+                .findFirst();
+
+        if (existingUser != null) {
+            return false; // Email déjà utilisé
+        }
+
+        // Créer le nouvel utilisateur
+        realm.executeTransaction(r -> {
+            User user = r.createObject(User.class, id);
+            user.setFullName(fullName);
+            user.setEmail(email);
+            user.setPassword(password); // En production, hasher le mot de passe !
+            user.setCreatedAt(System.currentTimeMillis());
+        });
+
+        return true;
+    }
+
+    // Login utilisateur
+    public User loginUser(String email, String password) {
+        return realm.where(User.class)
+                .equalTo("email", email)
+                .equalTo("password", password)
+                .findFirst();
+    }
+
+    // Get user by email
+    public User getUserByEmail(String email) {
+        return realm.where(User.class)
+                .equalTo("email", email)
+                .findFirst();
+    }
+
+    // Get user by ID
+    public User getUserById(String userId) {
+        return realm.where(User.class)
+                .equalTo("id", userId)
+                .findFirst();
+    }
+
+    // Update user
+    public void updateUser(String userId, String fullName, String email) {
+        realm.executeTransaction(r -> {
+            User user = r.where(User.class)
+                    .equalTo("id", userId)
+                    .findFirst();
+            if (user != null) {
+                user.setFullName(fullName);
+                user.setEmail(email);
+            }
+        });
+    }
+
+    // Update password
+    public void updatePassword(String userId, String newPassword) {
+        realm.executeTransaction(r -> {
+            User user = r.where(User.class)
+                    .equalTo("id", userId)
+                    .findFirst();
+            if (user != null) {
+                user.setPassword(newPassword); // En production, hasher !
+            }
+        });
     }
 
     // ============ CATEGORY OPERATIONS ============

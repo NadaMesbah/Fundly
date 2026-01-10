@@ -17,9 +17,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.database.DataManager;
+import com.ensias.fundlytest.utils.SessionManager;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Calendar;
@@ -41,6 +43,8 @@ public class ProfileActivity extends BaseActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
+    private FirebaseFirestore db;
+    private SessionManager sessionManager;
     private DataManager dataManager;
     private final DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
     private ActivityResultLauncher<Intent> imagePickerLauncher;
@@ -49,7 +53,6 @@ public class ProfileActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Inflate profile layout into BaseActivity's fragment container
         FrameLayout container = findViewById(R.id.fragment_container);
         LayoutInflater inflater = LayoutInflater.from(this);
         inflater.inflate(R.layout.activity_profile, container, true);
@@ -60,15 +63,16 @@ public class ProfileActivity extends BaseActivity {
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
+        db = FirebaseFirestore.getInstance();
+        sessionManager = new SessionManager(this);
         dataManager = new DataManager();
 
         initializeImagePicker();
         initViews();
-        loadUserData();
+        loadUserData(); // ✅ Charge depuis Firestore maintenant
         loadBudgetData();
         setupListeners();
 
-        // Highlight Profile tab
         highlightCurrentTab();
     }
 
@@ -107,25 +111,61 @@ public class ProfileActivity extends BaseActivity {
         menuLoginDetails = findViewById(R.id.menu_login_details);
     }
 
+
     private void loadUserData() {
-        if (currentUser != null) {
-            String displayName = currentUser.getDisplayName();
-            String email = currentUser.getEmail();
+        if (currentUser == null) {
+            return;
+        }
 
-            String userName = "";
+        String userId = currentUser.getUid();
 
-            if (displayName != null && !displayName.isEmpty()) {
-                userName = displayName;
-            } else if (email != null) {
-                userName = email.split("@")[0];
-            }
 
-            tvUserName.setText(userName);
-            tvBudgetName.setText(userName);
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String fullName = documentSnapshot.getString("fullName");
+                        String email = documentSnapshot.getString("email");
 
-            if (email != null) {
-                tvUserRole.setText(email);
-            }
+                        // Afficher le nom complet
+                        if (fullName != null && !fullName.isEmpty()) {
+                            tvUserName.setText(fullName);
+                            tvBudgetName.setText(fullName);
+                        } else if (email != null) {
+                            tvUserName.setText(email.split("@")[0]);
+                            tvBudgetName.setText(email.split("@")[0]);
+                        }
+
+                        // Afficher l'email
+                        if (email != null) {
+                            tvUserRole.setText(email);
+                        }
+                    } else {
+                        // Fallback si pas de données Firestore
+                        loadUserDataFromSession();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Fallback en cas d'erreur
+                    loadUserDataFromSession();
+                });
+    }
+
+
+    private void loadUserDataFromSession() {
+        String fullName = sessionManager.getFullName();
+        String email = sessionManager.getEmail();
+
+        if (fullName != null && !fullName.isEmpty()) {
+            tvUserName.setText(fullName);
+            tvBudgetName.setText(fullName);
+        } else if (email != null) {
+            tvUserName.setText(email.split("@")[0]);
+            tvBudgetName.setText(email.split("@")[0]);
+        }
+
+        if (email != null) {
+            tvUserRole.setText(email);
         }
     }
 
@@ -196,6 +236,7 @@ public class ProfileActivity extends BaseActivity {
 
     private void performLogout() {
         mAuth.signOut();
+        sessionManager.logout();
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(this, LoginActivity.class);
@@ -207,6 +248,7 @@ public class ProfileActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         loadUserData();
         loadBudgetData();
     }

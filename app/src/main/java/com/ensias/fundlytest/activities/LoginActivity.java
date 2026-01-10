@@ -64,7 +64,6 @@ public class LoginActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnTogglePassword = findViewById(R.id.btn_toggle_password);
-        tvForgotPassword = findViewById(R.id.tv_forgot_password);
         btnLogin = findViewById(R.id.btn_login);
         tvSignUp = findViewById(R.id.tv_sign_up);
     }
@@ -73,10 +72,6 @@ public class LoginActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         btnTogglePassword.setOnClickListener(v -> togglePasswordVisibility());
-
-        tvForgotPassword.setOnClickListener(v -> {
-            Toast.makeText(this, "Forgot Password - Coming soon", Toast.LENGTH_SHORT).show();
-        });
 
         btnLogin.setOnClickListener(v -> attemptLogin());
 

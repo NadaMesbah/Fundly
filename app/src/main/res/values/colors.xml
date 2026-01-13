@@ -69,4 +69,8 @@
     <color name="cat_freelance">#667EEA</color>
     <color name="cat_investment">#FFBE76</color>
     <color name="cat_gift">#DA70D6</color>
+
+    <!-- Noir -->
+    <color name="black">#000000</color>
+    <color name="red">#F44336</color>
 </resources>

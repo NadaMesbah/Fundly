@@ -3,7 +3,6 @@ package com.ensias.fundlytest.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,12 +23,12 @@ public class BaseActivity extends AppCompatActivity {
         LinearLayout navHome = findViewById(R.id.nav_home);
         LinearLayout navTransactions = findViewById(R.id.nav_transactions);
         LinearLayout navReports = findViewById(R.id.nav_reports);
-        LinearLayout navSettings = findViewById(R.id.nav_settings);
+        LinearLayout navProfile = findViewById(R.id.nav_profile);
 
         if (navHome != null) {
             navHome.setOnClickListener(v -> {
-                if (!(this instanceof MainActivity)) {
-                    Intent intent = new Intent(this, MainActivity.class);
+                if (!(this instanceof HomeActivity)) {
+                    Intent intent = new Intent(this, HomeActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                     finish();
@@ -59,9 +58,14 @@ public class BaseActivity extends AppCompatActivity {
             });
         }
 
-        if (navSettings != null) {
-            navSettings.setOnClickListener(v -> {
-                // Currently does nothing, can implement settings later
+        if (navProfile != null) {
+            navProfile.setOnClickListener(v -> {
+                if (!(this instanceof ProfileActivity)) {
+                    Intent intent = new Intent(this, ProfileActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                }
             });
         }
     }
@@ -70,19 +74,21 @@ public class BaseActivity extends AppCompatActivity {
         LinearLayout navHome = findViewById(R.id.nav_home);
         LinearLayout navTransactions = findViewById(R.id.nav_transactions);
         LinearLayout navReports = findViewById(R.id.nav_reports);
-        LinearLayout navSettings = findViewById(R.id.nav_settings);
+        LinearLayout navProfile = findViewById(R.id.nav_profile);
 
         resetTabColors(navHome);
         resetTabColors(navTransactions);
         resetTabColors(navReports);
-        resetTabColors(navSettings);
+        resetTabColors(navProfile);
 
-        if (this instanceof MainActivity && navHome != null) {
+        if (this instanceof HomeActivity && navHome != null) {
             highlightTab(navHome);
         } else if (this instanceof TransactionsActivity && navTransactions != null) {
             highlightTab(navTransactions);
         } else if (this instanceof ReportsActivity && navReports != null) {
             highlightTab(navReports);
+        } else if (this instanceof ProfileActivity && navProfile != null) {
+            highlightTab(navProfile);
         }
     }
 

@@ -90,29 +90,21 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
                 }
             }
 
-            // Set delete button visibility (only for custom categories)
-            if (category.isCustom()) {
-                holder.btnDelete.setVisibility(View.VISIBLE);
-                holder.btnDelete.setOnClickListener(v -> {
-                    if (listener != null) {
-                        listener.onDelete(category);
-                    }
-                });
-            } else {
-                holder.btnDelete.setVisibility(View.GONE);
-            }
+            // CHANGED: Delete button now visible for ALL categories
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDelete(category);
+                }
+            });
 
-            // Set edit button (only for custom categories)
-            if (category.isCustom()) {
-                holder.btnEdit.setVisibility(View.VISIBLE);
-                holder.btnEdit.setOnClickListener(v -> {
-                    if (listener != null) {
-                        listener.onEdit(category);
-                    }
-                });
-            } else {
-                holder.btnEdit.setVisibility(View.GONE);
-            }
+            // CHANGED: Edit button now visible for ALL categories
+            holder.btnEdit.setVisibility(View.VISIBLE);
+            holder.btnEdit.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onEdit(category);
+                }
+            });
 
         } catch (Exception e) {
             Log.e(TAG, "Error binding view at position " + position, e);

@@ -218,7 +218,7 @@ public class TransactionsActivity extends BaseActivity {
         }
 
         // Update total display
-        String totalText = decimalFormat.format(total) + " Dhs";
+        String totalText = decimalFormat.format(total) + " DH";
         totalLabel.setText("Total " + (currentType.equals("expense") ? "expenses" : "income") + ": " + totalText);
     }
 

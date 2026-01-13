@@ -112,7 +112,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
 
     private void updateUI(Transaction transaction) {
         // Set amount
-        String amountText = "$" + decimalFormat.format(transaction.getAmount());
+        String amountText = "DH" + decimalFormat.format(transaction.getAmount());
         transactionAmount.setText(amountText);
 
         // Set date

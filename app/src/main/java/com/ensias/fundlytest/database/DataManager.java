@@ -38,6 +38,22 @@ public class DataManager {
                 .findAll();
     }
 
+    // Get all categories (both types)
+    public List<Category> getAllCategories() {
+        RealmResults<Category> results = realm.where(Category.class).findAll();
+        return realm.copyFromRealm(results);
+    }
+
+    // Get category by name
+    public Category getCategoryByName(String name) {
+        return realm.where(Category.class)
+                .equalTo("name", name)
+                .findFirst();
+    }
+    public RealmResults<Category> getAllCategoriesRealm() {
+        return realm.where(Category.class).findAll();
+    }
+
     // Get category by ID
     public Category getCategoryById(String categoryId) {
         return realm.where(Category.class)

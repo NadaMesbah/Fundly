@@ -4,10 +4,12 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.database.DataManager;
+import com.ensias.fundlytest.models.Category;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.*;
 import com.github.mikephil.charting.formatter.PercentFormatter;
@@ -18,6 +20,7 @@ import java.util.*;
 
 public class ReportsActivity extends BaseActivity {
 
+    private static final String TAG = "ReportsActivity";
     private DataManager dataManager;
     private PieChart pieChart;
     private TextView totalAmountView;
@@ -43,17 +46,20 @@ public class ReportsActivity extends BaseActivity {
     private TabLayout.OnTabSelectedListener dateTabListener;
     private boolean suppressDateTabCallback = false;
 
+    // Cache for categories to avoid repeated database queries
+    private Map<String, Category> categoryCache = new HashMap<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Inflate the reports layout into the fragment container
         FrameLayout container = findViewById(R.id.fragment_container);
         LayoutInflater inflater = LayoutInflater.from(this);
         inflater.inflate(R.layout.activity_reports, container, true);
 
         dataManager = new DataManager();
 
+        loadCategoryCache();
         setupViews();
         setupPieChart();
         setupPeriodTabs();
@@ -62,7 +68,8 @@ public class ReportsActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh data when returning to this activity
+        // Refresh category cache when returning to this activity
+        loadCategoryCache();
         if (startDate != null && endDate != null) {
             loadChartData();
         }
@@ -73,6 +80,28 @@ public class ReportsActivity extends BaseActivity {
         super.onDestroy();
         if (pieChart != null) pieChart.clear();
         if (dataManager != null) dataManager.close();
+    }
+
+    private void loadCategoryCache() {
+        categoryCache.clear();
+
+        try {
+            // Load both expense and income categories
+            List<Category> expenseCategories = dataManager.getCategoriesByType("expense");
+            List<Category> incomeCategories = dataManager.getCategoriesByType("income");
+
+            // Add to cache by name
+            for (Category cat : expenseCategories) {
+                categoryCache.put(cat.getName(), cat);
+            }
+            for (Category cat : incomeCategories) {
+                categoryCache.put(cat.getName(), cat);
+            }
+
+            Log.d(TAG, "Category cache loaded: " + categoryCache.size() + " categories");
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading category cache", e);
+        }
     }
 
     private void setupViews() {
@@ -312,6 +341,9 @@ public class ReportsActivity extends BaseActivity {
         double totalIncome = dataManager.getTotalIncome(startDate, endDate);
         Map<String, Double> breakdown = dataManager.getCategoryBreakdown(startDate, endDate, reportType);
 
+        Log.d(TAG, "Loaded data - Expenses: " + totalExpenses + ", Income: " + totalIncome +
+                ", Breakdown items: " + (breakdown != null ? breakdown.size() : 0));
+
         updateSummary(totalExpenses, totalIncome);
         updatePieChart(breakdown);
         updateCategoryBreakdown(breakdown, reportType.equals("expense") ? totalExpenses : totalIncome);
@@ -322,14 +354,14 @@ public class ReportsActivity extends BaseActivity {
 
         if (totalAmountView != null) {
             double displayTotal = reportType.equals("expense") ? totalExpenses : totalIncome;
-            totalAmountView.setText("$" + decimalFormat.format(displayTotal));
+            totalAmountView.setText("DH" + decimalFormat.format(displayTotal));
         }
 
-        if (expensesTextView != null) expensesTextView.setText("-$" + decimalFormat.format(totalExpenses));
-        if (incomeTextView != null) incomeTextView.setText("+$" + decimalFormat.format(totalIncome));
+        if (expensesTextView != null) expensesTextView.setText("-DH" + decimalFormat.format(totalExpenses));
+        if (incomeTextView != null) incomeTextView.setText("+DH" + decimalFormat.format(totalIncome));
 
         if (balanceTextView != null) {
-            balanceTextView.setText("$" + decimalFormat.format(balance));
+            balanceTextView.setText("DH" + decimalFormat.format(balance));
             balanceTextView.setTextColor(balance >= 0 ? Color.parseColor("#4CAF50") : Color.parseColor("#F44336"));
         }
     }
@@ -340,6 +372,7 @@ public class ReportsActivity extends BaseActivity {
         if (breakdown == null || breakdown.isEmpty()) {
             pieChart.setData(null);
             pieChart.invalidate();
+            Log.d(TAG, "No breakdown data for pie chart");
             return;
         }
 
@@ -350,8 +383,21 @@ public class ReportsActivity extends BaseActivity {
             double amount = (e.getValue() == null) ? 0.0 : e.getValue();
             if (amount <= 0) continue;
 
-            entries.add(new PieEntry((float) amount, e.getKey()));
-            colors.add(getCategoryColor(e.getKey()));
+            String categoryName = e.getKey();
+            entries.add(new PieEntry((float) amount, categoryName));
+
+            // Get actual category color from cache
+            Category category = categoryCache.get(categoryName);
+            int color = Color.parseColor("#607D8B"); // default gray
+
+            if (category != null) {
+                color = category.getColor();
+                Log.d(TAG, "Category: " + categoryName + " -> Color: #" + Integer.toHexString(color));
+            } else {
+                Log.w(TAG, "Category not found in cache: " + categoryName);
+            }
+
+            colors.add(color);
         }
 
         if (entries.isEmpty()) {
@@ -372,6 +418,8 @@ public class ReportsActivity extends BaseActivity {
 
         pieChart.setData(data);
         pieChart.invalidate();
+
+        Log.d(TAG, "Pie chart updated with " + entries.size() + " slices");
     }
 
     private void updateCategoryBreakdown(Map<String, Double> breakdown, double totalForType) {
@@ -414,11 +462,23 @@ public class ReportsActivity extends BaseActivity {
 
             tvName.setText(categoryName);
             tvPercent.setText(String.format(Locale.getDefault(), "%.1f%%", percentage));
-            tvAmount.setText("$" + decimalFormat.format(amount));
+            tvAmount.setText("DH" + decimalFormat.format(amount));
 
-            int color = getCategoryColor(categoryName);
+            // Get actual category data from cache
+            Category category = categoryCache.get(categoryName);
 
-            ivIcon.setImageResource(getCategoryIconRes(categoryName));
+            int color = Color.parseColor("#607D8B"); // default gray
+            int iconRes = R.drawable.ic_attach_money; // default icon
+
+            if (category != null) {
+                color = category.getColor();
+                iconRes = getCategoryIconRes(category.getIconName());
+                Log.d(TAG, "Breakdown row: " + categoryName + " -> Icon: " + category.getIconName() + ", Color: #" + Integer.toHexString(color));
+            } else {
+                Log.w(TAG, "Category not found for breakdown: " + categoryName);
+            }
+
+            ivIcon.setImageResource(iconRes);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ivIcon.setImageTintList(ColorStateList.valueOf(color));
             } else {
@@ -436,41 +496,17 @@ public class ReportsActivity extends BaseActivity {
         }
     }
 
-    private int getCategoryIconRes(String category) {
-        if (category == null) return R.drawable.ic_attach_money;
-        switch (category.toLowerCase()) {
-            case "food": return R.drawable.ic_restaurant;
-            case "transport": return R.drawable.ic_directions_car;
-            case "shopping": return R.drawable.ic_shopping_cart;
-            case "health": return R.drawable.ic_health;
-            case "entertainment": return R.drawable.ic_movie;
-            case "education": return R.drawable.ic_school;
-            case "home": return R.drawable.ic_home;
-            case "phone": return R.drawable.ic_phone_android;
-            case "salary": return R.drawable.ic_work;
-            case "freelance": return R.drawable.ic_computer;
-            case "investment": return R.drawable.ic_trending_up;
-            case "gift": return R.drawable.ic_card_giftcard;
-            default: return R.drawable.ic_attach_money;
+    private int getCategoryIconRes(String iconName) {
+        if (iconName == null || iconName.isEmpty()) {
+            return R.drawable.ic_attach_money;
         }
-    }
 
-    private int getCategoryColor(String category) {
-        if (category == null) return Color.parseColor("#607D8B");
-        switch (category.toLowerCase()) {
-            case "food": return Color.parseColor("#4CAF50");
-            case "transport": return Color.parseColor("#2196F3");
-            case "shopping": return Color.parseColor("#FF9800");
-            case "health": return Color.parseColor("#9C27B0");
-            case "entertainment": return Color.parseColor("#E91E63");
-            case "education": return Color.parseColor("#00BCD4");
-            case "home": return Color.parseColor("#795548");
-            case "phone": return Color.parseColor("#607D8B");
-            case "salary": return Color.parseColor("#4CAF50");
-            case "freelance": return Color.parseColor("#2196F3");
-            case "investment": return Color.parseColor("#FF9800");
-            case "gift": return Color.parseColor("#9C27B0");
-            default: return Color.parseColor("#607D8B");
+        try {
+            int resId = getResources().getIdentifier(iconName, "drawable", getPackageName());
+            return (resId != 0) ? resId : R.drawable.ic_attach_money;
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting icon resource for: " + iconName, e);
+            return R.drawable.ic_attach_money;
         }
     }
 

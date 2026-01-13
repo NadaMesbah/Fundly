@@ -17,30 +17,30 @@ public class DataManager {
         realm = Realm.getDefaultInstance();
     }
 
-    // Register un nouvel utilisateur
+    // ============ USER OPERATIONS ============
+
+    // Register a new user
     public boolean registerUser(String id, String fullName, String email, String password) {
-        // Vérifier si l'email existe déjà
         User existingUser = realm.where(User.class)
                 .equalTo("email", email)
                 .findFirst();
 
         if (existingUser != null) {
-            return false; // Email déjà utilisé
+            return false;
         }
 
-        // Créer le nouvel utilisateur
         realm.executeTransaction(r -> {
             User user = r.createObject(User.class, id);
             user.setFullName(fullName);
             user.setEmail(email);
-            user.setPassword(password); // En production, hasher le mot de passe !
+            user.setPassword(password);
             user.setCreatedAt(System.currentTimeMillis());
         });
 
         return true;
     }
 
-    // Login utilisateur
+    // Login user
     public User loginUser(String email, String password) {
         return realm.where(User.class)
                 .equalTo("email", email)
@@ -82,17 +82,22 @@ public class DataManager {
                     .equalTo("id", userId)
                     .findFirst();
             if (user != null) {
-                user.setPassword(newPassword); // En production, hasher !
+                user.setPassword(newPassword);
             }
         });
     }
 
-    // ============ CATEGORY OPERATIONS ============
+    // ============ CATEGORY OPERATIONS (USER-SPECIFIC) ============
 
-    // Add a category
-    public void addCategory(String id, String name, String type, String iconName, int color, boolean isCustom) {
+    /**
+     * Add a category for a specific user
+     * IMPORTANT: Always pass userId
+     */
+    public void addCategory(String id, String userId, String name, String type,
+                            String iconName, int color, boolean isCustom) {
         realm.executeTransaction(r -> {
             Category category = r.createObject(Category.class, id);
+            category.setUserId(userId);  // CRITICAL: Set user ID
             category.setName(name);
             category.setType(type);
             category.setIconName(iconName);
@@ -102,38 +107,59 @@ public class DataManager {
         });
     }
 
-    // Get all categories by type
-    public List<Category> getCategoriesByType(String type) {
+    /**
+     * Get categories by type for a specific user
+     * CRITICAL: Only returns categories belonging to this user
+     */
+    public List<Category> getCategoriesByType(String userId, String type) {
         return realm.where(Category.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .equalTo("type", type)
                 .sort("order", Sort.ASCENDING)
                 .findAll();
     }
 
-    // Get all categories (both types)
-    public List<Category> getAllCategories() {
-        RealmResults<Category> results = realm.where(Category.class).findAll();
+    /**
+     * Get all categories for a specific user
+     */
+    public List<Category> getAllCategories(String userId) {
+        RealmResults<Category> results = realm.where(Category.class)
+                .equalTo("userId", userId)  // FILTER BY USER
+                .findAll();
         return realm.copyFromRealm(results);
     }
 
-    // Get category by name
-    public Category getCategoryByName(String name) {
+    /**
+     * Get category by name for a specific user
+     */
+    public Category getCategoryByName(String userId, String name) {
         return realm.where(Category.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .equalTo("name", name)
                 .findFirst();
     }
-    public RealmResults<Category> getAllCategoriesRealm() {
-        return realm.where(Category.class).findAll();
+
+    /**
+     * Get all categories for a specific user (RealmResults)
+     */
+    public RealmResults<Category> getAllCategoriesRealm(String userId) {
+        return realm.where(Category.class)
+                .equalTo("userId", userId)  // FILTER BY USER
+                .findAll();
     }
 
-    // Get category by ID
+    /**
+     * Get category by ID (no user filter needed since ID is unique)
+     */
     public Category getCategoryById(String categoryId) {
         return realm.where(Category.class)
                 .equalTo("id", categoryId)
                 .findFirst();
     }
 
-    // Update a category
+    /**
+     * Update a category
+     */
     public void updateCategory(String categoryId, String name, String iconName, int color) {
         realm.executeTransaction(r -> {
             Category category = r.where(Category.class)
@@ -147,7 +173,9 @@ public class DataManager {
         });
     }
 
-    // Delete a category
+    /**
+     * Delete a category
+     */
     public void deleteCategory(String categoryId) {
         realm.executeTransaction(r -> {
             Category category = r.where(Category.class)
@@ -159,13 +187,17 @@ public class DataManager {
         });
     }
 
-    // ============ TRANSACTION OPERATIONS ============
+    // ============ TRANSACTION OPERATIONS (USER-SPECIFIC) ============
 
-    // Add a transaction
-    public void addTransaction(String id, double amount, String categoryId, String type,
-                               String note, Date date, int color, String iconName) {
+    /**
+     * Add a transaction for a specific user
+     * IMPORTANT: Always pass userId
+     */
+    public void addTransaction(String id, String userId, double amount, String categoryId,
+                               String type, String note, Date date, int color, String iconName) {
         realm.executeTransaction(r -> {
             Transaction transaction = r.createObject(Transaction.class, id);
+            transaction.setUserId(userId);  // CRITICAL: Set user ID
             transaction.setAmount(amount);
             transaction.setCategoryId(categoryId);
             transaction.setType(type);
@@ -176,16 +208,20 @@ public class DataManager {
         });
     }
 
-    // Get transaction by ID
+    /**
+     * Get transaction by ID (no user filter needed since ID is unique)
+     */
     public Transaction getTransactionById(String transactionId) {
         return realm.where(Transaction.class)
                 .equalTo("id", transactionId)
                 .findFirst();
     }
 
-    // Update a transaction
-    public void updateTransaction(String transactionId, double amount, String categoryId, String type,
-                                  String note, Date date, int color, String iconName) {
+    /**
+     * Update a transaction
+     */
+    public void updateTransaction(String transactionId, double amount, String categoryId,
+                                  String type, String note, Date date, int color, String iconName) {
         realm.executeTransaction(r -> {
             Transaction transaction = r.where(Transaction.class)
                     .equalTo("id", transactionId)
@@ -202,31 +238,43 @@ public class DataManager {
         });
     }
 
-    // Get all transactions
-    public List<Transaction> getAllTransactions() {
+    /**
+     * Get all transactions for a specific user
+     * CRITICAL: Only returns transactions belonging to this user
+     */
+    public List<Transaction> getAllTransactions(String userId) {
         return realm.where(Transaction.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .sort("date", Sort.DESCENDING)
                 .findAll();
     }
 
-    // Get transactions by type
-    public List<Transaction> getTransactionsByType(String type) {
+    /**
+     * Get transactions by type for a specific user
+     */
+    public List<Transaction> getTransactionsByType(String userId, String type) {
         return realm.where(Transaction.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .equalTo("type", type)
                 .sort("date", Sort.DESCENDING)
                 .findAll();
     }
 
-    // Get transactions by date range
-    public List<Transaction> getTransactionsByDateRange(Date startDate, Date endDate) {
+    /**
+     * Get transactions by date range for a specific user
+     */
+    public List<Transaction> getTransactionsByDateRange(String userId, Date startDate, Date endDate) {
         return realm.where(Transaction.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .greaterThanOrEqualTo("date", startDate)
                 .lessThan("date", endDate)
                 .sort("date", Sort.DESCENDING)
                 .findAll();
     }
 
-    // Delete a transaction
+    /**
+     * Delete a transaction
+     */
     public void deleteTransaction(String transactionId) {
         realm.executeTransaction(r -> {
             Transaction transaction = r.where(Transaction.class)
@@ -238,11 +286,14 @@ public class DataManager {
         });
     }
 
-    // ============ REPORTS & STATISTICS ============
+    // ============ REPORTS & STATISTICS (USER-SPECIFIC) ============
 
-    // Get total expenses in date range
-    public double getTotalExpenses(Date startDate, Date endDate) {
+    /**
+     * Get total expenses in date range for a specific user
+     */
+    public double getTotalExpenses(String userId, Date startDate, Date endDate) {
         RealmResults<Transaction> results = realm.where(Transaction.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .equalTo("type", "expense")
                 .greaterThanOrEqualTo("date", startDate)
                 .lessThan("date", endDate)
@@ -255,9 +306,12 @@ public class DataManager {
         return total;
     }
 
-    // Get total income in date range
-    public double getTotalIncome(Date startDate, Date endDate) {
+    /**
+     * Get total income in date range for a specific user
+     */
+    public double getTotalIncome(String userId, Date startDate, Date endDate) {
         RealmResults<Transaction> results = realm.where(Transaction.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .equalTo("type", "income")
                 .greaterThanOrEqualTo("date", startDate)
                 .lessThan("date", endDate)
@@ -270,9 +324,12 @@ public class DataManager {
         return total;
     }
 
-    // Get category breakdown
-    public Map<String, Double> getCategoryBreakdown(Date startDate, Date endDate, String type) {
+    /**
+     * Get category breakdown for a specific user
+     */
+    public Map<String, Double> getCategoryBreakdown(String userId, Date startDate, Date endDate, String type) {
         RealmResults<Transaction> transactions = realm.where(Transaction.class)
+                .equalTo("userId", userId)  // FILTER BY USER
                 .equalTo("type", type)
                 .greaterThanOrEqualTo("date", startDate)
                 .lessThan("date", endDate)

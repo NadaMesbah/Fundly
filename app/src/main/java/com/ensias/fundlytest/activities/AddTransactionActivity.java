@@ -10,6 +10,7 @@ import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Category;
 import com.ensias.fundlytest.models.Transaction;
+import com.ensias.fundlytest.utils.SessionManager;
 import com.google.android.material.tabs.TabLayout;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -17,6 +18,9 @@ import java.util.*;
 public class AddTransactionActivity extends AppCompatActivity {
 
     private DataManager dataManager;
+    private SessionManager sessionManager;
+    private String currentUserId;
+
     private TabLayout tabLayout;
     private EditText etDate;
     private ImageButton btnPickDate;
@@ -40,6 +44,16 @@ public class AddTransactionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_transaction);
+
+        // GET CURRENT USER
+        sessionManager = new SessionManager(this);
+        currentUserId = sessionManager.getUserId();
+
+        if (currentUserId == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         dataManager = new DataManager();
 
@@ -118,24 +132,26 @@ public class AddTransactionActivity extends AppCompatActivity {
     }
 
     private void loadTransactionForEditing() {
-        // Get transaction by ID
         Transaction transactionToEdit = dataManager.getTransactionById(transactionIdToEdit);
 
         if (transactionToEdit != null) {
-            // Set current type
+            // Verify this transaction belongs to current user
+            if (!currentUserId.equals(transactionToEdit.getUserId())) {
+                Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+
             currentType = transactionToEdit.getType();
 
-            // Select the correct tab
             int tabPosition = currentType.equals("expense") ? 0 : 1;
             TabLayout.Tab tab = tabLayout.getTabAt(tabPosition);
             if (tab != null) {
                 tabLayout.selectTab(tab);
             }
 
-            // Load categories and find the correct one
             loadCategories();
 
-            // Set the selected category after a short delay to ensure spinner is populated
             spinnerCategory.post(() -> {
                 int categoryPosition = -1;
                 for (int i = 0; i < categories.size(); i++) {
@@ -149,21 +165,17 @@ public class AddTransactionActivity extends AppCompatActivity {
                     spinnerCategory.setSelection(categoryPosition);
                 }
 
-                // Set amount
                 etAmount.setText(String.valueOf(transactionToEdit.getAmount()));
 
-                // Set date
                 if (transactionToEdit.getDate() != null) {
                     selectedDate = transactionToEdit.getDate();
                     etDate.setText(dateFormat.format(selectedDate));
                 }
 
-                // Set note
                 if (transactionToEdit.getNote() != null) {
                     noteInput.setText(transactionToEdit.getNote());
                 }
 
-                // Update button text
                 btnSave.setText("Update Transaction");
             });
         } else {
@@ -207,7 +219,8 @@ public class AddTransactionActivity extends AppCompatActivity {
 
     private void loadCategories() {
         categories.clear();
-        categories.addAll(dataManager.getCategoriesByType(currentType));
+        // FILTER BY USER ID
+        categories.addAll(dataManager.getCategoriesByType(currentUserId, currentType));
         updateSpinner();
     }
 
@@ -277,9 +290,10 @@ public class AddTransactionActivity extends AppCompatActivity {
                     selectedCategory.getIconName()
             );
         } else {
-            // Add new transaction
+            // Add new transaction WITH USER ID
             dataManager.addTransaction(
                     UUID.randomUUID().toString(),
+                    currentUserId,  // USER ID
                     amount,
                     selectedCategory.getId(),
                     currentType,

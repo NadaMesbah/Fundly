@@ -13,6 +13,7 @@ import com.ensias.fundlytest.adapters.TransactionAdapter;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Transaction;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.ensias.fundlytest.utils.SessionManager;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -28,11 +29,13 @@ public class HomeActivity extends BaseActivity {
     private TextView tvExpenseAmount;
     private TextView tvViewAll;
     private RecyclerView rvTransactions;
-
     // Data
     private DataManager dataManager;
     private TransactionAdapter adapter;
     private List<Transaction> recentTransactions;
+    private SessionManager sessionManager;
+    private String currentUserId;
+
 
     // Formatage
     private final DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
@@ -49,7 +52,13 @@ public class HomeActivity extends BaseActivity {
         // Initialiser DataManager (Realm)
         dataManager = new DataManager();
         recentTransactions = new ArrayList<>();
-
+        sessionManager = new SessionManager(this);
+        currentUserId = sessionManager.getUserId();
+        if (currentUserId == null) {
+            // you can redirect to LoginActivity instead if you want
+            finish();
+            return;
+        }
         // Initialiser les vues
         initViews();
 
@@ -136,22 +145,19 @@ public class HomeActivity extends BaseActivity {
     }
 
     private void loadData() {
-        // Obtenir les dates pour le mois en cours
         Date[] currentMonthDates = getCurrentMonthDates();
         Date startDate = currentMonthDates[0];
         Date endDate = currentMonthDates[1];
 
-        // Calculer les totaux avec DataManager (Realm)
-        double totalIncome = dataManager.getTotalIncome(startDate, endDate);
-        double totalExpenses = dataManager.getTotalExpenses(startDate, endDate);
+        double totalIncome = dataManager.getTotalIncome(currentUserId, startDate, endDate);
+        double totalExpenses = dataManager.getTotalExpenses(currentUserId, startDate, endDate);
         double balance = totalIncome - totalExpenses;
 
-        // Mettre à jour la carte Balance
         updateBalanceCard(balance, totalIncome, totalExpenses);
 
-        // Charger les 5 dernières transactions
         loadRecentTransactions(startDate, endDate);
     }
+
 
     private Date[] getCurrentMonthDates() {
         Calendar cal = Calendar.getInstance();
@@ -174,17 +180,17 @@ public class HomeActivity extends BaseActivity {
     private void updateBalanceCard(double balance, double income, double expense) {
         // Balance totale (Income - Expense)
         if (tvBalanceAmount != null) {
-            tvBalanceAmount.setText("$" + decimalFormat.format(balance));
+            tvBalanceAmount.setText(decimalFormat.format(balance) + " DH");
         }
 
         // Revenus (vert avec flèche ↑)
         if (tvIncomeAmount != null) {
-            tvIncomeAmount.setText("↑ $" + formatShortAmount(income));
+            tvIncomeAmount.setText("↑ " + formatShortAmount(income) + " DH");
         }
 
         // Dépenses (rouge avec flèche ↓)
         if (tvExpenseAmount != null) {
-            tvExpenseAmount.setText("↓ $" + formatShortAmount(expense));
+            tvExpenseAmount.setText("↓ " + formatShortAmount(expense) + " DH");
         }
     }
 
@@ -206,21 +212,19 @@ public class HomeActivity extends BaseActivity {
     }
 
     private void loadRecentTransactions(Date startDate, Date endDate) {
-        // Récupérer les transactions du mois depuis Realm
-        List<Transaction> allTransactions = dataManager.getTransactionsByDateRange(startDate, endDate);
+        List<Transaction> allTransactions =
+                dataManager.getTransactionsByDateRange(currentUserId, startDate, endDate);
 
-        // Vider la liste actuelle
         recentTransactions.clear();
 
-        // Limiter à 5 transactions maximum
         int count = Math.min(5, allTransactions.size());
         for (int i = 0; i < count; i++) {
             recentTransactions.add(allTransactions.get(i));
         }
 
-        // Mettre à jour l'adaptateur avec updateTransactions()
         if (adapter != null) {
             adapter.updateTransactions(recentTransactions);
         }
     }
+
 }

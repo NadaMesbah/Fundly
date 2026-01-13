@@ -3,17 +3,26 @@ package com.ensias.fundlytest.models;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
+import io.realm.annotations.Index;
 import java.util.Date;
 import java.util.UUID;
 
 public class Transaction extends RealmObject {
+
     @PrimaryKey
     private String id;
+    @Required
+    @Index
+    private String userId;
+
     private double amount;
+
     @Required
     private String categoryId;
+
     @Required
     private String type; // "income" or "expense"
+
     private Date date;
     private String note;
     private String iconName;
@@ -31,8 +40,12 @@ public class Transaction extends RealmObject {
         this.date = new Date();
     }
 
+    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     public double getAmount() { return amount; }
     public void setAmount(double amount) { this.amount = amount; }

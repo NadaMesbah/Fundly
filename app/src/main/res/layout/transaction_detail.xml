@@ -6,38 +6,49 @@
     android:background="#F5F5F7">
 
     <!-- Top Bar -->
-    <RelativeLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:padding="16dp"
-        android:background="#3869EA">
+        app:cardBackgroundColor="@color/glass_white"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
 
-        <!-- Back Button -->
-        <ImageView
-            android:id="@+id/backButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_arrow_back"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Go back" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:background="@color/glass_white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp">
 
-        <!-- Details Title -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="Details"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF" />
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/button_secondary"
+                android:src="@drawable/ic_arrow_back"
+                android:contentDescription="Go back"
+                app:tint="@color/primary_blue" />
 
-    </RelativeLayout>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Details"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <!-- Spacer to balance layout (same width as back button) -->
+            <View
+                android:layout_width="44dp"
+                android:layout_height="44dp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Content Container (at top/middle, not centered) -->
     <LinearLayout
@@ -209,7 +220,7 @@
         android:orientation="horizontal"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
-        android:layout_marginBottom="40dp">
+        android:layout_marginBottom="120dp">
 
         <!-- Edit Button -->
         <androidx.cardview.widget.CardView
@@ -231,7 +242,7 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:background="#4A90E2"
+                android:background="@drawable/bg_button_primary"
                 android:gravity="center"
                 android:padding="16dp" />
 
@@ -257,7 +268,7 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:background="#E42323"
+                android:background="@drawable/button_gradient_red"
                 android:gravity="center"
                 android:padding="16dp" />
 

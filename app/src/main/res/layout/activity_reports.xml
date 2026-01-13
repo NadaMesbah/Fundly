@@ -156,7 +156,7 @@
                             android:layout_height="wrap_content"
                             android:text="-$1,975.50"
                             android:textColor="@color/accent_red"
-                            android:textSize="18sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -195,7 +195,7 @@
                             android:layout_height="wrap_content"
                             android:text="+$2,500.00"
                             android:textColor="@color/accent_green"
-                            android:textSize="18sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -233,7 +233,7 @@
                             android:layout_height="wrap_content"
                             android:text="+$524.50"
                             android:textColor="@color/accent_green"
-                            android:textSize="18sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

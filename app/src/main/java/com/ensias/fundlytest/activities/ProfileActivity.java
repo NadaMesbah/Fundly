@@ -45,6 +45,7 @@ public class ProfileActivity extends BaseActivity {
     private FirebaseUser currentUser;
     private FirebaseFirestore db;
     private SessionManager sessionManager;
+    private String currentUserId;
     private DataManager dataManager;
     private final DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
     private ActivityResultLauncher<Intent> imagePickerLauncher;
@@ -65,11 +66,15 @@ public class ProfileActivity extends BaseActivity {
         currentUser = mAuth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
         sessionManager = new SessionManager(this);
+        currentUserId = sessionManager.getUserId();
+        if (currentUserId == null && currentUser != null) {
+            currentUserId = currentUser.getUid();
+        }
         dataManager = new DataManager();
 
         initializeImagePicker();
         initViews();
-        loadUserData(); // ✅ Charge depuis Firestore maintenant
+        loadUserData(); // Charge depuis Firestore
         loadBudgetData();
         setupListeners();
 
@@ -170,12 +175,14 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void loadBudgetData() {
-        Date[] dates = getCurrentMonthDates();
-        double totalIncome = dataManager.getTotalIncome(dates[0], dates[1]);
-        double totalExpenses = dataManager.getTotalExpenses(dates[0], dates[1]);
+        if (currentUserId == null) return;
 
-        tvProfileIncome.setText("$" + formatAmount(totalIncome));
-        tvProfileExpenses.setText("$" + formatAmount(totalExpenses));
+        Date[] dates = getCurrentMonthDates();
+        double totalIncome = dataManager.getTotalIncome(currentUserId, dates[0], dates[1]);
+        double totalExpenses = dataManager.getTotalExpenses(currentUserId, dates[0], dates[1]);
+
+        tvProfileIncome.setText(formatAmount(totalIncome) + " DH");
+        tvProfileExpenses.setText(formatAmount(totalExpenses) + " DH");
     }
 
     private Date[] getCurrentMonthDates() {

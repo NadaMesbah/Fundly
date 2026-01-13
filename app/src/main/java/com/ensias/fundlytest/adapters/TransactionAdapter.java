@@ -1,5 +1,6 @@
 package com.ensias.fundlytest.adapters;
 
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +61,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         }
 
         // Set amount with type indicator
-        String amountText = decimalFormat.format(transaction.getAmount()) + " Dhs";
+        String amountText = decimalFormat.format(transaction.getAmount()) + " DH";
         holder.transactionAmount.setText(amountText);
 
         // Set icon if available
@@ -71,16 +72,23 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                                 holder.itemView.getContext().getPackageName());
                 if (resId != 0) {
                     holder.iconImage.setImageResource(resId);
+                    holder.iconImage.setColorFilter(0xFFFFFFFF); // White tint
                 }
             } catch (Exception e) {
-                // Use default icon
                 holder.iconImage.setImageResource(R.drawable.ic_attach_money);
+                holder.iconImage.setColorFilter(0xFFFFFFFF); // White tint
             }
         }
 
-        // Set color
+        // Set color while preserving the circle shape
         if (transaction.getColor() != 0) {
-            holder.iconBackground.setBackgroundColor(transaction.getColor());
+            try {
+                GradientDrawable background =
+                        (GradientDrawable) holder.iconBackground.getBackground().mutate();
+                background.setColor(transaction.getColor());
+            } catch (Exception e) {
+                holder.iconBackground.setBackgroundColor(transaction.getColor());
+            }
         }
 
         // Set click listener

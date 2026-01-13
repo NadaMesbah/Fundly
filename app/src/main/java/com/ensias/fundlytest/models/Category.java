@@ -3,12 +3,17 @@ package com.ensias.fundlytest.models;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
+import io.realm.annotations.Index;
 import java.util.UUID;
 
 public class Category extends RealmObject {
 
     @PrimaryKey
     private String id;
+
+    @Required
+    @Index
+    private String userId;
 
     @Required
     private String name;
@@ -42,8 +47,12 @@ public class Category extends RealmObject {
         this.order = 999;
     }
 
+    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

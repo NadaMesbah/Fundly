@@ -7,13 +7,13 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.adapters.TransactionAdapter;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Transaction;
+import com.ensias.fundlytest.utils.SessionManager;
 import com.google.android.material.tabs.TabLayout;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -26,6 +26,8 @@ import java.util.Locale;
 public class TransactionsActivity extends BaseActivity {
 
     private DataManager dataManager;
+    private SessionManager sessionManager;
+    private String currentUserId;
     private RecyclerView transactionsList;
     private TransactionAdapter adapter;
     private List<Transaction> allTransactions = new ArrayList<>();
@@ -34,8 +36,6 @@ public class TransactionsActivity extends BaseActivity {
     private TextView weekSelector;
     private Button btnAddTransaction;
     private TabLayout tabLayout;
-    private TextView totalAmountView;
-
     private String currentType = "expense";
     private Date startDate;
     private Date endDate;
@@ -49,6 +49,16 @@ public class TransactionsActivity extends BaseActivity {
         FrameLayout container = findViewById(R.id.fragment_container);
         LayoutInflater inflater = LayoutInflater.from(this);
         inflater.inflate(R.layout.transaction, container, true);
+
+        // GET CURRENT USER
+        sessionManager = new SessionManager(this);
+        currentUserId = sessionManager.getUserId();
+
+        if (currentUserId == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         dataManager = new DataManager();
         setupViews();
@@ -72,10 +82,7 @@ public class TransactionsActivity extends BaseActivity {
     }
 
     private void setupViews() {
-        // Setup back button (does nothing since we have navigation)
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
-
-        // Setup refresh button
         findViewById(R.id.btnRefresh).setOnClickListener(v -> loadTransactions());
 
         totalLabel = findViewById(R.id.totalLabel);
@@ -83,12 +90,10 @@ public class TransactionsActivity extends BaseActivity {
         btnAddTransaction = findViewById(R.id.btnAddTransaction);
         tabLayout = findViewById(R.id.tabLayout);
 
-        // Setup RecyclerView and Adapter
         transactionsList = findViewById(R.id.transactionsList);
         transactionsList.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new TransactionAdapter(filteredTransactions, transaction -> {
-            // Open transaction details
             Intent intent = new Intent(TransactionsActivity.this, TransactionDetailActivity.class);
             intent.putExtra("transaction_id", transaction.getId());
             startActivity(intent);
@@ -119,7 +124,6 @@ public class TransactionsActivity extends BaseActivity {
     }
 
     private void setupDateRange() {
-        // Default: this week
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -135,7 +139,6 @@ public class TransactionsActivity extends BaseActivity {
 
         weekSelector.setOnClickListener(v -> {
             if (weekSelector.getText().toString().contains("week")) {
-                // Show month
                 Calendar monthCal = Calendar.getInstance();
                 monthCal.set(Calendar.DAY_OF_MONTH, 1);
                 monthCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -149,7 +152,6 @@ public class TransactionsActivity extends BaseActivity {
 
                 weekSelector.setText("This month");
             } else {
-                // Show week
                 Calendar weekCal = Calendar.getInstance();
                 weekCal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
                 weekCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -179,7 +181,8 @@ public class TransactionsActivity extends BaseActivity {
     }
 
     private void loadTransactions() {
-        allTransactions = dataManager.getAllTransactions();
+        // FILTER BY USER ID
+        allTransactions = dataManager.getAllTransactions(currentUserId);
         filterAndDisplayTransactions();
         updateTotal();
     }
@@ -208,7 +211,8 @@ public class TransactionsActivity extends BaseActivity {
     }
 
     private void updateTotal() {
-        List<Transaction> transactions = dataManager.getTransactionsByDateRange(startDate, endDate);
+        // FILTER BY USER ID
+        List<Transaction> transactions = dataManager.getTransactionsByDateRange(currentUserId, startDate, endDate);
         double total = 0;
 
         for (Transaction t : transactions) {
@@ -217,7 +221,6 @@ public class TransactionsActivity extends BaseActivity {
             }
         }
 
-        // Update total display
         String totalText = decimalFormat.format(total) + " DH";
         totalLabel.setText("Total " + (currentType.equals("expense") ? "expenses" : "income") + ": " + totalText);
     }

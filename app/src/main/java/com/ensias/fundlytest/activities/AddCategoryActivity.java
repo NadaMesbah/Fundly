@@ -13,12 +13,16 @@ import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.adapters.CategoryAdapter;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Category;
+import com.ensias.fundlytest.utils.SessionManager;
 import com.google.android.material.tabs.TabLayout;
 import java.util.*;
 
 public class AddCategoryActivity extends AppCompatActivity {
 
     private DataManager dataManager;
+    private SessionManager sessionManager;
+    private String currentUserId;
+
     private CategoryAdapter adapter;
     private List<Category> displayedCategories = new ArrayList<>();
     private String currentType = "expense";
@@ -28,6 +32,16 @@ public class AddCategoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_category);
+
+        // GET CURRENT USER
+        sessionManager = new SessionManager(this);
+        currentUserId = sessionManager.getUserId();
+
+        if (currentUserId == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         dataManager = new DataManager();
 
@@ -98,7 +112,8 @@ public class AddCategoryActivity extends AppCompatActivity {
 
     private void loadCategories() {
         displayedCategories.clear();
-        displayedCategories.addAll(dataManager.getCategoriesByType(currentType));
+        // FILTER BY USER ID
+        displayedCategories.addAll(dataManager.getCategoriesByType(currentUserId, currentType));
         adapter.notifyDataSetChanged();
     }
 
@@ -146,8 +161,10 @@ public class AddCategoryActivity extends AppCompatActivity {
                     return;
                 }
 
+                // ADD CATEGORY WITH USER ID
                 dataManager.addCategory(
                         UUID.randomUUID().toString(),
+                        currentUserId,  // USER ID
                         name,
                         currentType,
                         selectedIcon[0],
@@ -165,6 +182,12 @@ public class AddCategoryActivity extends AppCompatActivity {
     }
 
     private void showEditCategoryDialog(Category categoryToEdit) {
+        // Verify this category belongs to current user
+        if (!currentUserId.equals(categoryToEdit.getUserId())) {
+            Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_category, null);
         builder.setView(dialogView);
@@ -313,6 +336,12 @@ public class AddCategoryActivity extends AppCompatActivity {
     }
 
     private void deleteCategory(Category category) {
+        // Verify this category belongs to current user
+        if (!currentUserId.equals(category.getUserId())) {
+            Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (!category.isCustom()) {
             Toast.makeText(this, "Default categories cannot be deleted", Toast.LENGTH_SHORT).show();
             return;

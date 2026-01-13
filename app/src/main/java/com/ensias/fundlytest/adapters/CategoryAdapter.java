@@ -72,13 +72,16 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
                 if (iconResId != 0) {
                     holder.categoryIcon.setImageResource(iconResId);
+                    holder.categoryIcon.setColorFilter(0xFFFFFFFF); // White tint
                 } else {
                     Log.w(TAG, "Icon not found: " + category.getIconName());
                     holder.categoryIcon.setImageResource(android.R.drawable.ic_menu_add);
+                    holder.categoryIcon.setColorFilter(0xFFFFFFFF); // White tint
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error setting icon", e);
                 holder.categoryIcon.setImageResource(android.R.drawable.ic_menu_add);
+                holder.categoryIcon.setColorFilter(0xFFFFFFFF); // White tint
             }
 
             // Set category color on the background view

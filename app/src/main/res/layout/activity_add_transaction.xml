@@ -134,7 +134,7 @@
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp"
-                android:hint="$ 0.00"
+                android:hint="0.00 DH"
                 android:textColorHint="@color/text_hint"
                 android:layout_marginBottom="20dp"/>
 
@@ -160,7 +160,7 @@
                 android:id="@+id/btnAddCategoryInline"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="➕ Add new category"
+                android:text="+ Add new category"
                 android:textColor="@color/primary_blue"
                 android:textStyle="bold"
                 android:textSize="14sp"

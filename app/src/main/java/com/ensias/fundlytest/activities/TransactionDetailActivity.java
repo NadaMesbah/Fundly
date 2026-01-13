@@ -2,6 +2,7 @@ package com.ensias.fundlytest.activities;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -12,6 +13,7 @@ import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Category;
 import com.ensias.fundlytest.models.Transaction;
+import com.ensias.fundlytest.utils.SessionManager;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -19,6 +21,9 @@ import java.util.Locale;
 public class TransactionDetailActivity extends AppCompatActivity {
 
     private DataManager dataManager;
+    private SessionManager sessionManager;
+    private String currentUserId;
+
     private TextView transactionName;
     private TextView transactionType;
     private TextView transactionAmount;
@@ -38,6 +43,16 @@ public class TransactionDetailActivity extends AppCompatActivity {
         transactionId = getIntent().getStringExtra("transaction_id");
         if (transactionId == null) {
             Toast.makeText(this, "Transaction not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // GET CURRENT USER
+        sessionManager = new SessionManager(this);
+        currentUserId = sessionManager.getUserId();
+
+        if (currentUserId == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -62,10 +77,8 @@ public class TransactionDetailActivity extends AppCompatActivity {
     }
 
     private void setupViews() {
-        // Back button
         findViewById(R.id.backButton).setOnClickListener(v -> finish());
 
-        // Edit button
         findViewById(R.id.editButton).setOnClickListener(v -> {
             Intent intent = new Intent(TransactionDetailActivity.this, AddTransactionActivity.class);
             intent.putExtra("transaction_id", transactionId);
@@ -73,10 +86,8 @@ public class TransactionDetailActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Delete button
         findViewById(R.id.deleteButton).setOnClickListener(v -> showDeleteConfirmationDialog());
 
-        // Initialize views
         transactionName = findViewById(R.id.transactionName);
         transactionType = findViewById(R.id.transactionType);
         transactionAmount = findViewById(R.id.transactionAmount);
@@ -96,12 +107,16 @@ public class TransactionDetailActivity extends AppCompatActivity {
     }
 
     private void loadTransactionDetails() {
-        Transaction transaction = dataManager.getAllTransactions().stream()
-                .filter(t -> t.getId().equals(transactionId))
-                .findFirst()
-                .orElse(null);
+        Transaction transaction = dataManager.getTransactionById(transactionId);
 
         if (transaction != null) {
+            // VERIFY THIS TRANSACTION BELONGS TO CURRENT USER
+            if (!currentUserId.equals(transaction.getUserId())) {
+                Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+
             updateUI(transaction);
             loadCategoryDetails(transaction.getCategoryId());
         } else {
@@ -112,7 +127,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
 
     private void updateUI(Transaction transaction) {
         // Set amount
-        String amountText = "DH" + decimalFormat.format(transaction.getAmount());
+        String amountText = decimalFormat.format(transaction.getAmount()) + " DH";
         transactionAmount.setText(amountText);
 
         // Set date
@@ -140,15 +155,23 @@ public class TransactionDetailActivity extends AppCompatActivity {
                         transaction.getIconName(), "drawable", getPackageName());
                 if (resId != 0) {
                     iconImage.setImageResource(resId);
+                    iconImage.setColorFilter(0xFFFFFFFF); // White tint
                 }
             } catch (Exception e) {
                 iconImage.setImageResource(R.drawable.ic_attach_money);
+                iconImage.setColorFilter(0xFFFFFFFF); // White tint
             }
         }
 
-        // Set color if available
+        // Set color while preserving the circle shape
         if (transaction.getColor() != 0) {
-            iconBackground.setBackgroundColor(transaction.getColor());
+            try {
+                GradientDrawable background =
+                        (GradientDrawable) iconBackground.getBackground().mutate();
+                background.setColor(transaction.getColor());
+            } catch (Exception e) {
+                iconBackground.setBackgroundColor(transaction.getColor());
+            }
         }
     }
 

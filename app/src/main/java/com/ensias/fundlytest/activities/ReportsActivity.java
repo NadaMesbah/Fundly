@@ -10,6 +10,7 @@ import android.widget.*;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Category;
+import com.ensias.fundlytest.utils.SessionManager;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.*;
 import com.github.mikephil.charting.formatter.PercentFormatter;
@@ -21,7 +22,11 @@ import java.util.*;
 public class ReportsActivity extends BaseActivity {
 
     private static final String TAG = "ReportsActivity";
+
     private DataManager dataManager;
+    private SessionManager sessionManager;
+    private String currentUserId;
+
     private PieChart pieChart;
     private TextView totalAmountView;
     private TextView periodTextView;
@@ -46,7 +51,6 @@ public class ReportsActivity extends BaseActivity {
     private TabLayout.OnTabSelectedListener dateTabListener;
     private boolean suppressDateTabCallback = false;
 
-    // Cache for categories to avoid repeated database queries
     private Map<String, Category> categoryCache = new HashMap<>();
 
     @Override
@@ -56,6 +60,18 @@ public class ReportsActivity extends BaseActivity {
         FrameLayout container = findViewById(R.id.fragment_container);
         LayoutInflater inflater = LayoutInflater.from(this);
         inflater.inflate(R.layout.activity_reports, container, true);
+
+        // GET CURRENT USER
+        sessionManager = new SessionManager(this);
+        currentUserId = sessionManager.getUserId();
+
+        if (currentUserId == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        Log.d(TAG, "ReportsActivity started for user: " + currentUserId);
 
         dataManager = new DataManager();
 
@@ -68,7 +84,6 @@ public class ReportsActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh category cache when returning to this activity
         loadCategoryCache();
         if (startDate != null && endDate != null) {
             loadChartData();
@@ -86,11 +101,10 @@ public class ReportsActivity extends BaseActivity {
         categoryCache.clear();
 
         try {
-            // Load both expense and income categories
-            List<Category> expenseCategories = dataManager.getCategoriesByType("expense");
-            List<Category> incomeCategories = dataManager.getCategoriesByType("income");
+            // FILTER BY USER ID
+            List<Category> expenseCategories = dataManager.getCategoriesByType(currentUserId, "expense");
+            List<Category> incomeCategories = dataManager.getCategoriesByType(currentUserId, "income");
 
-            // Add to cache by name
             for (Category cat : expenseCategories) {
                 categoryCache.put(cat.getName(), cat);
             }
@@ -337,12 +351,13 @@ public class ReportsActivity extends BaseActivity {
 
         showLoadingState();
 
-        double totalExpenses = dataManager.getTotalExpenses(startDate, endDate);
-        double totalIncome = dataManager.getTotalIncome(startDate, endDate);
-        Map<String, Double> breakdown = dataManager.getCategoryBreakdown(startDate, endDate, reportType);
+        // FILTER BY USER ID
+        double totalExpenses = dataManager.getTotalExpenses(currentUserId, startDate, endDate);
+        double totalIncome = dataManager.getTotalIncome(currentUserId, startDate, endDate);
+        Map<String, Double> breakdown = dataManager.getCategoryBreakdown(currentUserId, startDate, endDate, reportType);
 
-        Log.d(TAG, "Loaded data - Expenses: " + totalExpenses + ", Income: " + totalIncome +
-                ", Breakdown items: " + (breakdown != null ? breakdown.size() : 0));
+        Log.d(TAG, "Loaded data for user " + currentUserId + " - Expenses: " + totalExpenses +
+                ", Income: " + totalIncome + ", Breakdown items: " + (breakdown != null ? breakdown.size() : 0));
 
         updateSummary(totalExpenses, totalIncome);
         updatePieChart(breakdown);
@@ -354,14 +369,14 @@ public class ReportsActivity extends BaseActivity {
 
         if (totalAmountView != null) {
             double displayTotal = reportType.equals("expense") ? totalExpenses : totalIncome;
-            totalAmountView.setText("DH" + decimalFormat.format(displayTotal));
+            totalAmountView.setText(decimalFormat.format(displayTotal));
         }
 
-        if (expensesTextView != null) expensesTextView.setText("-DH" + decimalFormat.format(totalExpenses));
-        if (incomeTextView != null) incomeTextView.setText("+DH" + decimalFormat.format(totalIncome));
+        if (expensesTextView != null) expensesTextView.setText("-" + decimalFormat.format(totalExpenses));
+        if (incomeTextView != null) incomeTextView.setText("+" + decimalFormat.format(totalIncome));
 
         if (balanceTextView != null) {
-            balanceTextView.setText("DH" + decimalFormat.format(balance));
+            balanceTextView.setText(decimalFormat.format(balance));
             balanceTextView.setTextColor(balance >= 0 ? Color.parseColor("#4CAF50") : Color.parseColor("#F44336"));
         }
     }
@@ -386,12 +401,10 @@ public class ReportsActivity extends BaseActivity {
             String categoryName = e.getKey();
             entries.add(new PieEntry((float) amount, categoryName));
 
-            // Get actual category color from cache
             Category category = categoryCache.get(categoryName);
-            int color = Color.parseColor("#607D8B"); // default gray
+            int color = category != null ? category.getColor() : Color.parseColor("#607D8B");
 
             if (category != null) {
-                color = category.getColor();
                 Log.d(TAG, "Category: " + categoryName + " -> Color: #" + Integer.toHexString(color));
             } else {
                 Log.w(TAG, "Category not found in cache: " + categoryName);
@@ -462,18 +475,18 @@ public class ReportsActivity extends BaseActivity {
 
             tvName.setText(categoryName);
             tvPercent.setText(String.format(Locale.getDefault(), "%.1f%%", percentage));
-            tvAmount.setText("DH" + decimalFormat.format(amount));
+            tvAmount.setText(decimalFormat.format(amount) + " DH");
 
-            // Get actual category data from cache
             Category category = categoryCache.get(categoryName);
 
-            int color = Color.parseColor("#607D8B"); // default gray
-            int iconRes = R.drawable.ic_attach_money; // default icon
+            int color = Color.parseColor("#607D8B");
+            int iconRes = R.drawable.ic_attach_money;
 
             if (category != null) {
                 color = category.getColor();
                 iconRes = getCategoryIconRes(category.getIconName());
-                Log.d(TAG, "Breakdown row: " + categoryName + " -> Icon: " + category.getIconName() + ", Color: #" + Integer.toHexString(color));
+                Log.d(TAG, "Breakdown row: " + categoryName + " -> Icon: " + category.getIconName() +
+                        ", Color: #" + Integer.toHexString(color));
             } else {
                 Log.w(TAG, "Category not found for breakdown: " + categoryName);
             }

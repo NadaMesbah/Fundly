@@ -3,6 +3,7 @@ package com.ensias.fundlytest.activities;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Patterns;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -33,6 +34,11 @@ public class LoginDetailsActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseUser firebaseUser;
     private FirebaseFirestore db;
+    private ImageButton btnToggleCurrent, btnToggleNew, btnToggleConfirm;
+    private boolean isCurrentVisible = false;
+    private boolean isNewVisible = false;
+    private boolean isConfirmVisible = false;
+
 
     private String userId;
     private Uri selectedImageUri = null;
@@ -77,6 +83,18 @@ public class LoginDetailsActivity extends AppCompatActivity {
         userId = firebaseUser.getUid();
 
         bindViews();
+        btnToggleCurrent.setOnClickListener(v -> {
+            isCurrentVisible = togglePasswordVisibility(etCurrentPassword, btnToggleCurrent, isCurrentVisible);
+        });
+
+        btnToggleNew.setOnClickListener(v -> {
+            isNewVisible = togglePasswordVisibility(etNewPassword, btnToggleNew, isNewVisible);
+        });
+
+        btnToggleConfirm.setOnClickListener(v -> {
+            isConfirmVisible = togglePasswordVisibility(etConfirmPassword, btnToggleConfirm, isConfirmVisible);
+        });
+
         loadUserFromFirestore();
 
         btnBack.setOnClickListener(v -> finish());
@@ -94,18 +112,58 @@ public class LoginDetailsActivity extends AppCompatActivity {
         imagePickerLauncher.launch("image/*");
     }
 
+//    private void bindViews() {
+//        btnBack = findViewById(R.id.btn_back);
+//        ivProfileImage = findViewById(R.id.iv_profile_image);
+//        btnPickPhoto = findViewById(R.id.btn_pick_photo);
+//        etName = findViewById(R.id.et_name);
+//        etEmail = findViewById(R.id.et_email);
+//        etCurrentPassword = findViewById(R.id.et_current_password);
+//        etNewPassword = findViewById(R.id.et_new_password);
+//        etConfirmPassword = findViewById(R.id.et_confirm_password);
+//        btnSave = findViewById(R.id.btn_save);
+//        btnLogout = findViewById(R.id.btn_logout_details);
+//    }
+
+    private boolean togglePasswordVisibility(TextInputEditText editText, ImageButton button, boolean isVisible) {
+        if (isVisible) {
+            // hide password -> show eye-off icon
+            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            button.setImageResource(R.drawable.ic_eye_off);
+        } else {
+            // show password -> show eye icon
+            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+            button.setImageResource(R.drawable.ic_eye);
+        }
+
+        if (editText.getText() != null) {
+            editText.setSelection(editText.getText().length());
+        }
+
+        return !isVisible;
+    }
+
+
     private void bindViews() {
         btnBack = findViewById(R.id.btn_back);
         ivProfileImage = findViewById(R.id.iv_profile_image);
         btnPickPhoto = findViewById(R.id.btn_pick_photo);
+
         etName = findViewById(R.id.et_name);
         etEmail = findViewById(R.id.et_email);
+
         etCurrentPassword = findViewById(R.id.et_current_password);
         etNewPassword = findViewById(R.id.et_new_password);
         etConfirmPassword = findViewById(R.id.et_confirm_password);
+
         btnSave = findViewById(R.id.btn_save);
         btnLogout = findViewById(R.id.btn_logout_details);
+
+        btnToggleCurrent = findViewById(R.id.btn_toggle_current_password);
+        btnToggleNew = findViewById(R.id.btn_toggle_new_password);
+        btnToggleConfirm = findViewById(R.id.btn_toggle_confirm_password);
     }
+
 
     private void loadUserFromFirestore() {
         db.collection("users").document(userId)

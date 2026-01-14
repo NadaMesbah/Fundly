@@ -35,7 +35,7 @@ public class HomeActivity extends BaseActivity {
     private List<Transaction> recentTransactions;
     private SessionManager sessionManager;
     private String currentUserId;
-
+    private TextView tvWelcomeTitle;
 
     // Formatage
     private final DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
@@ -61,6 +61,7 @@ public class HomeActivity extends BaseActivity {
         }
         // Initialiser les vues
         initViews();
+        updateWelcomeTitle();
 
         // Configurer RecyclerView
         setupRecyclerView();
@@ -79,6 +80,7 @@ public class HomeActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         // Recharger les données quand on revient sur la page
+        updateWelcomeTitle();
         loadData();
     }
 
@@ -100,6 +102,7 @@ public class HomeActivity extends BaseActivity {
         tvExpenseAmount = findViewById(R.id.tv_expense_amount);
         tvViewAll = findViewById(R.id.tv_view_all);
         rvTransactions = findViewById(R.id.rv_transactions);
+        tvWelcomeTitle = findViewById(R.id.tvWelcomeTitle);
     }
 
     private void setupRecyclerView() {
@@ -118,6 +121,40 @@ public class HomeActivity extends BaseActivity {
         rvTransactions.setAdapter(adapter);
         rvTransactions.setNestedScrollingEnabled(false);
     }
+
+    private void updateWelcomeTitle() {
+        if (tvWelcomeTitle == null || sessionManager == null) return;
+
+        // Prefer fullName but display only first name
+        String fullName = sessionManager.getFullName();
+
+        String firstName = null;
+
+        if (fullName != null) {
+            fullName = fullName.trim();
+            if (!fullName.isEmpty()) {
+                // split by spaces and take the first part
+                String[] parts = fullName.split("\\s+");
+                if (parts.length > 0) firstName = parts[0];
+            }
+        }
+
+        // fallback: email prefix
+        if (firstName == null || firstName.isEmpty()) {
+            String email = sessionManager.getEmail();
+            if (email != null && email.contains("@")) {
+                firstName = email.split("@")[0];
+            }
+        }
+
+        // last fallback
+        if (firstName == null || firstName.isEmpty()) {
+            firstName = "User";
+        }
+
+        tvWelcomeTitle.setText("Welcome, " + firstName + "!");
+    }
+
 
     private void setupListeners() {
         // Clic sur la photo de profil → ProfileActivity

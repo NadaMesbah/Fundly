@@ -8,10 +8,14 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.ensias.fundlytest.FundlyApplication;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.models.Category;
+
 import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHolder> {
@@ -29,13 +33,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public CategoryAdapter(List<Category> categories, CategoryListener listener) {
         this.categories = categories;
         this.listener = listener;
-        Log.d(TAG, "Adapter created with " + (categories != null ? categories.size() : 0) + " categories");
     }
 
     public void updateCategories(List<Category> newCategories) {
         this.categories = newCategories;
         notifyDataSetChanged();
-        Log.d(TAG, "Categories updated: " + (newCategories != null ? newCategories.size() : 0));
     }
 
     @NonNull
@@ -46,79 +48,75 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         return new ViewHolder(view);
     }
 
+    private boolean isDefaultCategory(Category c) {
+        String uid = c.getUserId();
+        return uid == null || FundlyApplication.DEFAULT_USER_ID.equals(uid);
+    }
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        try {
-            Category category = categories.get(position);
+        Category category = categories.get(position);
 
-            Log.d(TAG, "Binding category: " + category.getName() + " (custom: " + category.isCustom() + ")");
+        boolean isDefault = isDefaultCategory(category);
 
-            // Set category name
-            holder.categoryName.setText(category.getName());
+        Log.d(TAG, "Binding category: " + category.getName()
+                + " userId=" + category.getUserId()
+                + " isDefault=" + isDefault
+                + " isCustomFlag=" + category.isCustom());
 
-            // Show "Customized" label only for custom categories
-            if (category.isCustom()) {
-                holder.customizedLabel.setVisibility(View.VISIBLE);
-                holder.customizedLabel.setText("(Customized)");
-            } else {
-                holder.customizedLabel.setVisibility(View.GONE);
-            }
+        holder.categoryName.setText(category.getName());
 
-            // Set icon if available
-            try {
-                int iconResId = holder.itemView.getContext().getResources()
-                        .getIdentifier(category.getIconName(), "drawable",
-                                holder.itemView.getContext().getPackageName());
+        // Label + buttons only for USER categories
+        if (!isDefault) {
+            holder.customizedLabel.setVisibility(View.VISIBLE);
+            holder.customizedLabel.setText("(Customized)");
 
-                if (iconResId != 0) {
-                    holder.categoryIcon.setImageResource(iconResId);
-                    holder.categoryIcon.setColorFilter(0xFFFFFFFF); // White tint
-                } else {
-                    Log.w(TAG, "Icon not found: " + category.getIconName());
-                    holder.categoryIcon.setImageResource(android.R.drawable.ic_menu_add);
-                    holder.categoryIcon.setColorFilter(0xFFFFFFFF); // White tint
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error setting icon", e);
-                holder.categoryIcon.setImageResource(android.R.drawable.ic_menu_add);
-                holder.categoryIcon.setColorFilter(0xFFFFFFFF); // White tint
-            }
-
-            // Set category color on the background view
-            View iconBackground = holder.itemView.findViewById(R.id.iconBackground);
-            if (iconBackground != null) {
-                GradientDrawable drawable = (GradientDrawable) iconBackground.getBackground();
-                if (drawable != null) {
-                    drawable.setColor(category.getColor());
-                }
-            }
-
-            // CHANGED: Delete button now visible for ALL categories
             holder.btnDelete.setVisibility(View.VISIBLE);
-            holder.btnDelete.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onDelete(category);
-                }
-            });
-
-            // CHANGED: Edit button now visible for ALL categories
             holder.btnEdit.setVisibility(View.VISIBLE);
-            holder.btnEdit.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onEdit(category);
-                }
+
+            holder.btnDelete.setOnClickListener(v -> {
+                if (listener != null) listener.onDelete(category);
             });
 
+            holder.btnEdit.setOnClickListener(v -> {
+                if (listener != null) listener.onEdit(category);
+            });
+
+        } else {
+            holder.customizedLabel.setVisibility(View.GONE);
+            holder.btnDelete.setVisibility(View.GONE);
+            holder.btnEdit.setVisibility(View.GONE);
+            holder.btnDelete.setOnClickListener(null);
+            holder.btnEdit.setOnClickListener(null);
+        }
+
+        // Icon
+        try {
+            int iconResId = holder.itemView.getContext().getResources()
+                    .getIdentifier(category.getIconName(), "drawable",
+                            holder.itemView.getContext().getPackageName());
+
+            if (iconResId != 0) {
+                holder.categoryIcon.setImageResource(iconResId);
+            } else {
+                holder.categoryIcon.setImageResource(android.R.drawable.ic_menu_add);
+            }
+            holder.categoryIcon.setColorFilter(0xFFFFFFFF);
         } catch (Exception e) {
-            Log.e(TAG, "Error binding view at position " + position, e);
+            holder.categoryIcon.setImageResource(android.R.drawable.ic_menu_add);
+            holder.categoryIcon.setColorFilter(0xFFFFFFFF);
+        }
+
+        // Background color
+        View iconBackground = holder.itemView.findViewById(R.id.iconBackground);
+        if (iconBackground != null && iconBackground.getBackground() instanceof GradientDrawable) {
+            ((GradientDrawable) iconBackground.getBackground()).setColor(category.getColor());
         }
     }
 
     @Override
     public int getItemCount() {
-        int count = categories == null ? 0 : categories.size();
-        Log.d(TAG, "getItemCount: " + count);
-        return count;
+        return categories != null ? categories.size() : 0;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -130,19 +128,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
         ViewHolder(View itemView) {
             super(itemView);
-
             categoryName = itemView.findViewById(R.id.categoryName);
             customizedLabel = itemView.findViewById(R.id.customizedLabel);
             categoryIcon = itemView.findViewById(R.id.categoryIcon);
             btnDelete = itemView.findViewById(R.id.btnDeleteCategory);
             btnEdit = itemView.findViewById(R.id.btnEditCategory);
-
-            // Log if any views are null
-            if (categoryName == null) Log.e(TAG, "categoryName is null in ViewHolder");
-            if (customizedLabel == null) Log.e(TAG, "customizedLabel is null in ViewHolder");
-            if (categoryIcon == null) Log.e(TAG, "categoryIcon is null in ViewHolder");
-            if (btnDelete == null) Log.e(TAG, "btnDelete is null in ViewHolder");
-            if (btnEdit == null) Log.e(TAG, "btnEdit is null in ViewHolder");
         }
     }
 }

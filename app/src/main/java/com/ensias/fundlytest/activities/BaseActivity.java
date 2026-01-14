@@ -7,6 +7,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.ensias.fundlytest.R;
+import android.widget.ImageView;
+import androidx.core.widget.ImageViewCompat;
+import android.content.res.ColorStateList;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -94,19 +97,28 @@ public class BaseActivity extends AppCompatActivity {
 
     private void resetTabColors(LinearLayout tab) {
         if (tab != null && tab.getChildCount() > 1) {
+
+            ImageView icon = (ImageView) tab.getChildAt(0);
             TextView textView = (TextView) tab.getChildAt(1);
-            if (textView != null) {
-                textView.setTextColor(Color.parseColor("#757575"));
-            }
+
+            int gray = Color.parseColor("#757575");
+
+            if (textView != null) textView.setTextColor(gray);
+            if (icon != null) ImageViewCompat.setImageTintList(icon, ColorStateList.valueOf(gray));
         }
     }
 
     private void highlightTab(LinearLayout tab) {
         if (tab != null && tab.getChildCount() > 1) {
+
+            ImageView icon = (ImageView) tab.getChildAt(0);
             TextView textView = (TextView) tab.getChildAt(1);
-            if (textView != null) {
-                textView.setTextColor(Color.parseColor("#3869EA"));
-            }
+
+            int blue = Color.parseColor("#3869EA");
+
+            if (textView != null) textView.setTextColor(blue);
+            if (icon != null) ImageViewCompat.setImageTintList(icon, ColorStateList.valueOf(blue));
         }
     }
+
 }

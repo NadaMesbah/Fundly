@@ -5,16 +5,20 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.ensias.fundlytest.FundlyApplication;
 import com.ensias.fundlytest.R;
 import com.ensias.fundlytest.adapters.CategoryAdapter;
 import com.ensias.fundlytest.database.DataManager;
 import com.ensias.fundlytest.models.Category;
 import com.ensias.fundlytest.utils.SessionManager;
 import com.google.android.material.tabs.TabLayout;
+
 import java.util.*;
 
 public class AddCategoryActivity extends AppCompatActivity {
@@ -33,7 +37,6 @@ public class AddCategoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_category);
 
-        // GET CURRENT USER
         sessionManager = new SessionManager(this);
         currentUserId = sessionManager.getUserId();
 
@@ -52,31 +55,27 @@ public class AddCategoryActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (dataManager != null) {
-            dataManager.close();
-        }
+        if (dataManager != null) dataManager.close();
+    }
+
+    private boolean isDefaultCategory(Category c) {
+        String uid = c.getUserId();
+        return uid == null || FundlyApplication.DEFAULT_USER_ID.equals(uid);
     }
 
     private void setupViews() {
         ImageButton btnBack = findViewById(R.id.btnBack);
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> finish());
-        }
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
         ImageButton btnRefresh = findViewById(R.id.btnRefresh);
-        if (btnRefresh != null) {
-            btnRefresh.setOnClickListener(v -> refreshCategories());
-        }
+        if (btnRefresh != null) btnRefresh.setOnClickListener(v -> refreshCategories());
 
         Button btnAddCategory = findViewById(R.id.btnAddCategory);
-        if (btnAddCategory != null) {
-            btnAddCategory.setOnClickListener(v -> showAddCategoryDialog());
-        }
+        if (btnAddCategory != null) btnAddCategory.setOnClickListener(v -> showAddCategoryDialog());
 
         RecyclerView recyclerView = findViewById(R.id.categoryRecyclerView);
         if (recyclerView != null) {
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
             adapter = new CategoryAdapter(displayedCategories, new CategoryAdapter.CategoryListener() {
                 @Override
                 public void onDelete(Category category) {
@@ -88,7 +87,6 @@ public class AddCategoryActivity extends AppCompatActivity {
                     showEditCategoryDialog(category);
                 }
             });
-
             recyclerView.setAdapter(adapter);
         }
 
@@ -112,7 +110,6 @@ public class AddCategoryActivity extends AppCompatActivity {
 
     private void loadCategories() {
         displayedCategories.clear();
-        // FILTER BY USER ID
         displayedCategories.addAll(dataManager.getCategoriesByType(currentUserId, currentType));
         adapter.notifyDataSetChanged();
     }
@@ -123,6 +120,11 @@ public class AddCategoryActivity extends AppCompatActivity {
     }
 
     private void showDeleteConfirmation(Category category) {
+        if (isDefaultCategory(category)) {
+            Toast.makeText(this, "Default categories cannot be deleted", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         new AlertDialog.Builder(this)
                 .setTitle("Delete Category")
                 .setMessage("Are you sure you want to delete " + category.getName() + "?")
@@ -148,9 +150,7 @@ public class AddCategoryActivity extends AppCompatActivity {
         setupColorGrid(colorGrid, selectedColor);
 
         Button btnCancel = dialogView.findViewById(R.id.btnCancelCategory);
-        if (btnCancel != null) {
-            btnCancel.setOnClickListener(v -> dialog.dismiss());
-        }
+        if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         Button btnSave = dialogView.findViewById(R.id.btnSaveCategory);
         if (btnSave != null) {
@@ -161,15 +161,14 @@ public class AddCategoryActivity extends AppCompatActivity {
                     return;
                 }
 
-                // ADD CATEGORY WITH USER ID
                 dataManager.addCategory(
                         UUID.randomUUID().toString(),
-                        currentUserId,  // USER ID
+                        currentUserId,
                         name,
                         currentType,
                         selectedIcon[0],
                         selectedColor[0],
-                        true
+                        true // ✅ user category
                 );
 
                 dialog.dismiss();
@@ -182,7 +181,11 @@ public class AddCategoryActivity extends AppCompatActivity {
     }
 
     private void showEditCategoryDialog(Category categoryToEdit) {
-        // Verify this category belongs to current user
+        if (isDefaultCategory(categoryToEdit)) {
+            Toast.makeText(this, "Default categories cannot be edited", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (!currentUserId.equals(categoryToEdit.getUserId())) {
             Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
             return;
@@ -194,14 +197,10 @@ public class AddCategoryActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
 
         TextView dialogTitle = dialogView.findViewById(R.id.dialogTitle);
-        if (dialogTitle != null) {
-            dialogTitle.setText("Edit Category");
-        }
+        if (dialogTitle != null) dialogTitle.setText("Edit Category");
 
         EditText etCategoryName = dialogView.findViewById(R.id.etCategoryName);
-        if (etCategoryName != null) {
-            etCategoryName.setText(categoryToEdit.getName());
-        }
+        if (etCategoryName != null) etCategoryName.setText(categoryToEdit.getName());
 
         GridLayout iconGrid = dialogView.findViewById(R.id.iconGrid);
         GridLayout colorGrid = dialogView.findViewById(R.id.colorGrid);
@@ -213,9 +212,7 @@ public class AddCategoryActivity extends AppCompatActivity {
         setupColorGrid(colorGrid, selectedColor);
 
         Button btnCancel = dialogView.findViewById(R.id.btnCancelCategory);
-        if (btnCancel != null) {
-            btnCancel.setOnClickListener(v -> dialog.dismiss());
-        }
+        if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         Button btnSave = dialogView.findViewById(R.id.btnSaveCategory);
         if (btnSave != null) {
@@ -238,9 +235,25 @@ public class AddCategoryActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void deleteCategory(Category category) {
+        if (isDefaultCategory(category)) {
+            Toast.makeText(this, "Default categories cannot be deleted", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!currentUserId.equals(category.getUserId())) {
+            Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        dataManager.deleteCategory(category.getId());
+        loadCategories();
+        Toast.makeText(this, "Category deleted", Toast.LENGTH_SHORT).show();
+    }
+
+    // --- Icon grid / color grid unchanged ---
     private void setupIconGrid(GridLayout iconGrid, final String[] selectedIcon) {
         if (iconGrid == null) return;
-
         iconGrid.removeAllViews();
 
         String[] icons = {
@@ -289,7 +302,6 @@ public class AddCategoryActivity extends AppCompatActivity {
 
     private void setupColorGrid(GridLayout colorGrid, final int[] selectedColor) {
         if (colorGrid == null) return;
-
         colorGrid.removeAllViews();
 
         int[] colors = {
@@ -333,23 +345,5 @@ public class AddCategoryActivity extends AppCompatActivity {
 
             colorGrid.addView(colorBtn);
         }
-    }
-
-    private void deleteCategory(Category category) {
-        // Verify this category belongs to current user
-        if (!currentUserId.equals(category.getUserId())) {
-            Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!category.isCustom()) {
-            Toast.makeText(this, "Default categories cannot be deleted", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        dataManager.deleteCategory(category.getId());
-
-        loadCategories();
-        Toast.makeText(this, "Category deleted", Toast.LENGTH_SHORT).show();
     }
 }

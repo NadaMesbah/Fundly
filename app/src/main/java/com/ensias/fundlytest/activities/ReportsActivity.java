@@ -122,8 +122,8 @@ public class ReportsActivity extends BaseActivity {
         ImageButton btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
 
-        ImageButton btnCalendar = findViewById(R.id.btnCalendar);
-        if (btnCalendar != null) btnCalendar.setOnClickListener(v -> showDatePicker());
+//        ImageButton btnCalendar = findViewById(R.id.btnCalendar);
+//        if (btnCalendar != null) btnCalendar.setOnClickListener(v -> showDatePicker());
 
         reportTypeTextView = findViewById(R.id.reportTypeTextView);
         if (reportTypeTextView != null) {
@@ -325,9 +325,9 @@ public class ReportsActivity extends BaseActivity {
         return cal.getTime();
     }
 
-    private void showDatePicker() {
-        Toast.makeText(this, "Date picker coming soon", Toast.LENGTH_SHORT).show();
-    }
+//    private void showDatePicker() {
+//        Toast.makeText(this, "Date picker coming soon", Toast.LENGTH_SHORT).show();
+//    }
 
     private void setupPieChart() {
         if (pieChart == null) return;

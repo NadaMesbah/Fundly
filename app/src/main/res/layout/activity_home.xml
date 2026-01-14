@@ -24,22 +24,47 @@
                 android:padding="20dp">
 
                 <LinearLayout
+                    android:id="@+id/headerWelcome"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <TextView
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <!-- Fundly logo -->
+                    <ImageView
+                        android:id="@+id/ivFundlyLogo"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
+                        android:src="@mipmap/ic_fundly_foreground"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Fundly logo" />
+
+                    <!-- Texts -->
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Welcome!"
-                        android:textColor="@color/black"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Track your budget here"
-                        android:textColor="@color/text_hint"
-                        android:textSize="14sp" />
+                        android:orientation="vertical"
+                        android:layout_marginStart="12dp">
+
+                        <TextView
+                            android:id="@+id/tvWelcomeTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Welcome!"
+                            android:textColor="@color/black"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvWelcomeSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Track your budget here"
+                            android:textColor="@color/text_hint"
+                            android:textSize="14sp" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
 
             </RelativeLayout>

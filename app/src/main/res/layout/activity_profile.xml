@@ -58,14 +58,14 @@
             <!-- Profile Image -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/iv_profile_image"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
                 android:layout_centerInParent="true"
                 android:layout_marginTop="10dp"
                 android:background="@color/white"
                 android:padding="20dp"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_camera_placeholder"
+                android:src="@drawable/ic_default_user"
                 app:shapeAppearanceOverlay="@style/CircleImage"
                 app:strokeColor="@color/white"
                 app:strokeWidth="3dp" />

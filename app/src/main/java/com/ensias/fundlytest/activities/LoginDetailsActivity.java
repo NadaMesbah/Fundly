@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -58,29 +59,29 @@ public class LoginDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_details);
 
-        // Cacher la ActionBar si présente
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
 
         sessionManager = new SessionManager(this);
         auth = FirebaseAuth.getInstance();
         firebaseUser = auth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
 
-        // Logs de diagnostic
-        android.util.Log.d("LoginDetails", "=== DIAGNOSTIC ===");
-        android.util.Log.d("LoginDetails", "sessionManager.isLoggedIn(): " + sessionManager.isLoggedIn());
-        android.util.Log.d("LoginDetails", "firebaseUser: " + (firebaseUser != null ? firebaseUser.getEmail() : "NULL"));
-
         if (!sessionManager.isLoggedIn() || firebaseUser == null) {
-            android.util.Log.d("LoginDetails", "❌ REDIRECTING TO LOGIN");
             goToLoginAndFinish();
             return;
         }
 
-        android.util.Log.d("LoginDetails", "✅ USER IS LOGGED IN - LOADING DATA");
         userId = firebaseUser.getUid();
+
+        bindViews();
+
+        ivProfileImage.setImageResource(R.drawable.ic_default_user); // change if needed
+        ivProfileImage.setPadding(22, 22, 22, 22);
+
+        if (btnPickPhoto != null) {
+            btnPickPhoto.setVisibility(View.GONE);
+            btnPickPhoto.setEnabled(false);
+        }
 
         bindViews();
         btnToggleCurrent.setOnClickListener(v -> {
@@ -98,32 +99,76 @@ public class LoginDetailsActivity extends AppCompatActivity {
         loadUserFromFirestore();
 
         btnBack.setOnClickListener(v -> finish());
-        btnPickPhoto.setOnClickListener(v -> openImagePicker());
-        ivProfileImage.setOnClickListener(v -> openImagePicker());
+
+        // ✅ no more image picker
+        ivProfileImage.setOnClickListener(null);
+
         btnSave.setOnClickListener(v -> onSave());
+
         btnLogout.setOnClickListener(v -> {
             auth.signOut();
             sessionManager.logout();
             goToLoginAndFinish();
         });
     }
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_login_details);
+//
+//        // Cacher la ActionBar si présente
+//        if (getSupportActionBar() != null) {
+//            getSupportActionBar().hide();
+//        }
+//
+//        sessionManager = new SessionManager(this);
+//        auth = FirebaseAuth.getInstance();
+//        firebaseUser = auth.getCurrentUser();
+//        db = FirebaseFirestore.getInstance();
+//
+//        // Logs de diagnostic
+//        android.util.Log.d("LoginDetails", "=== DIAGNOSTIC ===");
+//        android.util.Log.d("LoginDetails", "sessionManager.isLoggedIn(): " + sessionManager.isLoggedIn());
+//        android.util.Log.d("LoginDetails", "firebaseUser: " + (firebaseUser != null ? firebaseUser.getEmail() : "NULL"));
+//
+//        if (!sessionManager.isLoggedIn() || firebaseUser == null) {
+//            android.util.Log.d("LoginDetails", "❌ REDIRECTING TO LOGIN");
+//            goToLoginAndFinish();
+//            return;
+//        }
+//
+//        android.util.Log.d("LoginDetails", "✅ USER IS LOGGED IN - LOADING DATA");
+//        userId = firebaseUser.getUid();
+//
+//        bindViews();
+//        btnToggleCurrent.setOnClickListener(v -> {
+//            isCurrentVisible = togglePasswordVisibility(etCurrentPassword, btnToggleCurrent, isCurrentVisible);
+//        });
+//
+//        btnToggleNew.setOnClickListener(v -> {
+//            isNewVisible = togglePasswordVisibility(etNewPassword, btnToggleNew, isNewVisible);
+//        });
+//
+//        btnToggleConfirm.setOnClickListener(v -> {
+//            isConfirmVisible = togglePasswordVisibility(etConfirmPassword, btnToggleConfirm, isConfirmVisible);
+//        });
+//
+//        loadUserFromFirestore();
+//
+//        btnBack.setOnClickListener(v -> finish());
+//        btnPickPhoto.setOnClickListener(v -> openImagePicker());
+//        ivProfileImage.setOnClickListener(v -> openImagePicker());
+//        btnSave.setOnClickListener(v -> onSave());
+//        btnLogout.setOnClickListener(v -> {
+//            auth.signOut();
+//            sessionManager.logout();
+//            goToLoginAndFinish();
+//        });
+//    }
 
     private void openImagePicker() {
         imagePickerLauncher.launch("image/*");
     }
-
-//    private void bindViews() {
-//        btnBack = findViewById(R.id.btn_back);
-//        ivProfileImage = findViewById(R.id.iv_profile_image);
-//        btnPickPhoto = findViewById(R.id.btn_pick_photo);
-//        etName = findViewById(R.id.et_name);
-//        etEmail = findViewById(R.id.et_email);
-//        etCurrentPassword = findViewById(R.id.et_current_password);
-//        etNewPassword = findViewById(R.id.et_new_password);
-//        etConfirmPassword = findViewById(R.id.et_confirm_password);
-//        btnSave = findViewById(R.id.btn_save);
-//        btnLogout = findViewById(R.id.btn_logout_details);
-//    }
 
     private boolean togglePasswordVisibility(TextInputEditText editText, ImageButton button, boolean isVisible) {
         if (isVisible) {

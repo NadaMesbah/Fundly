@@ -3,7 +3,7 @@ package com.ensias.fundlytest.activities;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.*;
+import android.view.View;
 import android.widget.*;
 
 import androidx.appcompat.app.AlertDialog;
@@ -21,6 +21,8 @@ import com.google.android.material.tabs.TabLayout;
 
 import java.util.*;
 
+import yuku.ambilwarna.AmbilWarnaDialog;
+
 public class AddCategoryActivity extends AppCompatActivity {
 
     private DataManager dataManager;
@@ -28,7 +30,7 @@ public class AddCategoryActivity extends AppCompatActivity {
     private String currentUserId;
 
     private CategoryAdapter adapter;
-    private List<Category> displayedCategories = new ArrayList<>();
+    private final List<Category> displayedCategories = new ArrayList<>();
     private String currentType = "expense";
     private TabLayout tabLayout;
 
@@ -77,15 +79,8 @@ public class AddCategoryActivity extends AppCompatActivity {
         if (recyclerView != null) {
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             adapter = new CategoryAdapter(displayedCategories, new CategoryAdapter.CategoryListener() {
-                @Override
-                public void onDelete(Category category) {
-                    showDeleteConfirmation(category);
-                }
-
-                @Override
-                public void onEdit(Category category) {
-                    showEditCategoryDialog(category);
-                }
+                @Override public void onDelete(Category category) { showDeleteConfirmation(category); }
+                @Override public void onEdit(Category category) { showEditCategoryDialog(category); }
             });
             recyclerView.setAdapter(adapter);
         }
@@ -111,7 +106,7 @@ public class AddCategoryActivity extends AppCompatActivity {
     private void loadCategories() {
         displayedCategories.clear();
         displayedCategories.addAll(dataManager.getCategoriesByType(currentUserId, currentType));
-        adapter.notifyDataSetChanged();
+        if (adapter != null) adapter.notifyDataSetChanged();
     }
 
     private void refreshCategories() {
@@ -142,12 +137,17 @@ public class AddCategoryActivity extends AppCompatActivity {
         EditText etCategoryName = dialogView.findViewById(R.id.etCategoryName);
         GridLayout iconGrid = dialogView.findViewById(R.id.iconGrid);
         GridLayout colorGrid = dialogView.findViewById(R.id.colorGrid);
+        Button btnMoreColors = dialogView.findViewById(R.id.btnMoreColors);
 
         final String[] selectedIcon = {"ic_restaurant"};
-        final int[] selectedColor = {Color.parseColor("#2196F3")};
+        final int[] selectedColor = {withAlpha(Color.parseColor("#2196F3"), 0.85f)}; // soft
 
         setupIconGrid(iconGrid, selectedIcon);
         setupColorGrid(colorGrid, selectedColor);
+
+        if (btnMoreColors != null) {
+            btnMoreColors.setOnClickListener(v -> openColorPicker(selectedColor, colorGrid));
+        }
 
         Button btnCancel = dialogView.findViewById(R.id.btnCancelCategory);
         if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss());
@@ -168,7 +168,7 @@ public class AddCategoryActivity extends AppCompatActivity {
                         currentType,
                         selectedIcon[0],
                         selectedColor[0],
-                        true // ✅ user category
+                        true
                 );
 
                 dialog.dismiss();
@@ -204,12 +204,17 @@ public class AddCategoryActivity extends AppCompatActivity {
 
         GridLayout iconGrid = dialogView.findViewById(R.id.iconGrid);
         GridLayout colorGrid = dialogView.findViewById(R.id.colorGrid);
+        Button btnMoreColors = dialogView.findViewById(R.id.btnMoreColors);
 
         final String[] selectedIcon = {categoryToEdit.getIconName()};
         final int[] selectedColor = {categoryToEdit.getColor()};
 
         setupIconGrid(iconGrid, selectedIcon);
         setupColorGrid(colorGrid, selectedColor);
+
+        if (btnMoreColors != null) {
+            btnMoreColors.setOnClickListener(v -> openColorPicker(selectedColor, colorGrid));
+        }
 
         Button btnCancel = dialogView.findViewById(R.id.btnCancelCategory);
         if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss());
@@ -235,6 +240,42 @@ public class AddCategoryActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    private void openColorPicker(final int[] selectedColor, GridLayout colorGrid) {
+        int initialColor = selectedColor[0];
+
+        new AmbilWarnaDialog(
+                this,
+                initialColor,
+                new AmbilWarnaDialog.OnAmbilWarnaListener() {
+                    @Override
+                    public void onCancel(AmbilWarnaDialog dialog) {
+                        // nothing
+                    }
+
+                    @Override
+                    public void onOk(AmbilWarnaDialog dialog, int color) {
+                        // soft / modern
+                        selectedColor[0] = withAlpha(color, 0.85f);
+
+                        // remove selection stroke from grid (since now custom color)
+                        clearColorGridSelection(colorGrid);
+
+                        Toast.makeText(AddCategoryActivity.this, "Custom color selected", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        ).show();
+    }
+
+    private void clearColorGridSelection(GridLayout colorGrid) {
+        if (colorGrid == null) return;
+        for (int i = 0; i < colorGrid.getChildCount(); i++) {
+            View child = colorGrid.getChildAt(i);
+            if (child.getBackground() instanceof GradientDrawable) {
+                ((GradientDrawable) child.getBackground()).setStroke(4, Color.TRANSPARENT);
+            }
+        }
+    }
+
     private void deleteCategory(Category category) {
         if (isDefaultCategory(category)) {
             Toast.makeText(this, "Default categories cannot be deleted", Toast.LENGTH_SHORT).show();
@@ -251,7 +292,7 @@ public class AddCategoryActivity extends AppCompatActivity {
         Toast.makeText(this, "Category deleted", Toast.LENGTH_SHORT).show();
     }
 
-    // --- Icon grid / color grid unchanged ---
+    // --- Icon grid unchanged ---
     private void setupIconGrid(GridLayout iconGrid, final String[] selectedIcon) {
         if (iconGrid == null) return;
         iconGrid.removeAllViews();
@@ -300,27 +341,40 @@ public class AddCategoryActivity extends AppCompatActivity {
         }
     }
 
+    // --- Color grid updated: more colors + alpha style ---
     private void setupColorGrid(GridLayout colorGrid, final int[] selectedColor) {
         if (colorGrid == null) return;
         colorGrid.removeAllViews();
 
         int[] colors = {
-                Color.parseColor("#4CAF50"), Color.parseColor("#2196F3"),
-                Color.parseColor("#FF9800"), Color.parseColor("#9C27B0"),
-                Color.parseColor("#E91E63"), Color.parseColor("#00BCD4"),
-                Color.parseColor("#795548"), Color.parseColor("#607D8B")
+                Color.parseColor("#4CAF50"),
+                Color.parseColor("#2196F3"),
+                Color.parseColor("#FF9800"),
+                Color.parseColor("#9C27B0"),
+                Color.parseColor("#E91E63"),
+                Color.parseColor("#00BCD4"),
+                Color.parseColor("#795548"),
+                Color.parseColor("#607D8B"),
+                Color.parseColor("#667EEA"),
+                Color.parseColor("#FF6B9D"),
+                Color.parseColor("#4ECDC4"),
+                Color.parseColor("#FFC107")
         };
 
         float density = getResources().getDisplayMetrics().density;
         int sizePx = (int) (40 * density);
 
-        for (int color : colors) {
+        for (int baseColor : colors) {
+            int color = withAlpha(baseColor, 0.85f);
+
             ImageButton colorBtn = new ImageButton(this);
 
             GradientDrawable circle = new GradientDrawable();
             circle.setShape(GradientDrawable.OVAL);
             circle.setColor(color);
-            circle.setStroke(4, color == selectedColor[0] ? Color.WHITE : Color.TRANSPARENT);
+
+            boolean isSelected = color == selectedColor[0];
+            circle.setStroke(4, isSelected ? Color.WHITE : Color.TRANSPARENT);
 
             colorBtn.setBackground(circle);
 
@@ -331,19 +385,29 @@ public class AddCategoryActivity extends AppCompatActivity {
             colorBtn.setLayoutParams(params);
 
             colorBtn.setOnClickListener(v -> {
+                // clear strokes
                 for (int i = 0; i < colorGrid.getChildCount(); i++) {
                     View child = colorGrid.getChildAt(i);
                     if (child.getBackground() instanceof GradientDrawable) {
                         ((GradientDrawable) child.getBackground()).setStroke(4, Color.TRANSPARENT);
                     }
                 }
+
+                // set this stroke
                 if (colorBtn.getBackground() instanceof GradientDrawable) {
                     ((GradientDrawable) colorBtn.getBackground()).setStroke(4, Color.WHITE);
                 }
+
                 selectedColor[0] = color;
             });
 
             colorGrid.addView(colorBtn);
         }
+    }
+
+    // Utils: alpha
+    private static int withAlpha(int color, float alpha) {
+        int a = Math.round(255 * alpha);
+        return (color & 0x00FFFFFF) | (a << 24);
     }
 }

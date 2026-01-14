@@ -65,7 +65,7 @@
                     android:background="@drawable/bg_circle_light"
                     android:padding="22dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_camera_placeholder"
+                    android:src="@drawable/ic_default_user"
                     android:contentDescription="Profile image" />
 
                 <ImageView
